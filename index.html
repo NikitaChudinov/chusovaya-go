@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0c2630">
 <title>Чусовая GO</title>
-<!-- build v3: self-contained, no CDN -->
+<!-- build v4: self-contained · sudak · guide+faq -->
 <style>
 /* required styles */
 
@@ -685,7 +685,6 @@ svg.leaflet-image-layer.leaflet-interactive path {
       document.body.appendChild(d);}
     d.textContent=msg;
   }
-  window.__box = box;
   window.addEventListener('error',function(e){
     box('Ошибка: '+(e.message||e.type)+(e.filename?'\n'+String(e.filename).split('/').pop()+':'+e.lineno:''));
   }, true);
@@ -1039,61 +1038,63 @@ const storeAPI = {
 };
 const DACHA = { lat: 58.16062, lng: 56.56803 };
 const RARITY = {
-  common: { label: "\u041E\u0431\u044B\u0447\u043D\u0430\u044F", color: "#7e95a3", mult: 1 },
-  uncommon: { label: "\u041D\u0435\u043E\u0431\u044B\u0447\u043D\u0430\u044F", color: "#3f9ae0", mult: 1.5 },
-  rare: { label: "\u0420\u0435\u0434\u043A\u0430\u044F", color: "#b06fe6", mult: 2.5 },
-  legendary: { label: "\u041B\u0435\u0433\u0435\u043D\u0434\u0430\u0440\u043D\u0430\u044F", color: "#f5b942", mult: 10 }
+  common: { label: "Обычная", color: "#7e95a3", mult: 1 },
+  uncommon: { label: "Необычная", color: "#3f9ae0", mult: 1.5 },
+  rare: { label: "Редкая", color: "#b06fe6", mult: 2.5 },
+  legendary: { label: "Легендарная", color: "#f5b942", mult: 10 }
 };
 const FISH = {
-  okun: { name: "\u041E\u043A\u0443\u043D\u044C", shape: "panfish", color: "#5f9140", rarity: "common", min: 0.1, max: 0.9 },
-  plotva: { name: "\u041F\u043B\u043E\u0442\u0432\u0430", shape: "panfish", color: "#9aa7b0", rarity: "common", min: 0.1, max: 0.6 },
-  golavl: { name: "\u0413\u043E\u043B\u0430\u0432\u043B\u044C", shape: "deep", color: "#6f8a4a", rarity: "uncommon", min: 0.3, max: 1.8 },
-  yaz: { name: "\u042F\u0437\u044C", shape: "deep", color: "#c9a24b", rarity: "uncommon", min: 0.4, max: 2 },
-  shchuka: { name: "\u0429\u0443\u043A\u0430", shape: "predator", color: "#566f3a", rarity: "uncommon", min: 0.8, max: 5 },
-  leshch: { name: "\u041B\u0435\u0449", shape: "deep", color: "#bda472", rarity: "uncommon", min: 0.5, max: 2.8 },
-  zhereh: { name: "\u0416\u0435\u0440\u0435\u0445", shape: "predator", color: "#92a6b6", rarity: "rare", min: 1, max: 3.8 },
-  nalim: { name: "\u041D\u0430\u043B\u0438\u043C", shape: "predator", color: "#6f6040", rarity: "rare", min: 0.5, max: 2.5 },
-  harius: { name: "\u0425\u0430\u0440\u0438\u0443\u0441", shape: "panfish", color: "#7d8fc4", rarity: "rare", min: 0.2, max: 1.3 },
-  taimen: { name: "\u0422\u0430\u0439\u043C\u0435\u043D\u044C", shape: "predator", color: "#e0a93a", rarity: "legendary", min: 3, max: 12 }
+  okun: { name: "Окунь", shape: "panfish", color: "#5f9140", rarity: "common", min: 0.1, max: 0.9 },
+  plotva: { name: "Плотва", shape: "panfish", color: "#9aa7b0", rarity: "common", min: 0.1, max: 0.6 },
+  golavl: { name: "Голавль", shape: "deep", color: "#6f8a4a", rarity: "uncommon", min: 0.3, max: 1.8 },
+  yaz: { name: "Язь", shape: "deep", color: "#c9a24b", rarity: "uncommon", min: 0.4, max: 2 },
+  shchuka: { name: "Щука", shape: "predator", color: "#566f3a", rarity: "uncommon", min: 0.8, max: 5 },
+  sudak: { name: "Судак", shape: "predator", color: "#8fa89b", rarity: "rare", min: 0.5, max: 6 },
+  leshch: { name: "Лещ", shape: "deep", color: "#bda472", rarity: "uncommon", min: 0.5, max: 2.8 },
+  zhereh: { name: "Жерех", shape: "predator", color: "#92a6b6", rarity: "rare", min: 1, max: 3.8 },
+  nalim: { name: "Налим", shape: "predator", color: "#6f6040", rarity: "rare", min: 0.5, max: 2.5 },
+  harius: { name: "Хариус", shape: "panfish", color: "#7d8fc4", rarity: "rare", min: 0.2, max: 1.3 },
+  taimen: { name: "Таймень", shape: "predator", color: "#e0a93a", rarity: "legendary", min: 3, max: 12 }
 };
 const FISH_IDS = Object.keys(FISH);
 const SPOTS = [
-  { id: "gari", name: "\u0417\u0430\u0442\u043E\u043D \u0443 \u0434\u0430\u0447\u0438", sub: "\u0411\u0430\u0437\u0430 \xB7 \u043C\u0435\u043B\u043A\u043E\u0432\u043E\u0434\u044C\u0435", ll: [58.16062, 56.56803], base: true },
-  { id: "perekat", name: "\u041F\u0435\u0440\u0435\u043A\u0430\u0442", sub: "\u0411\u044B\u0441\u0442\u0440\u0430\u044F \u0432\u043E\u0434\u0430 \u0432\u044B\u0448\u0435", ll: [58.1655, 56.5585] },
-  { id: "skaly", name: "\u0421\u043A\u0430\u043B\u044B \u0443 \u041A\u0440. \u0421\u043B\u0443\u0434\u043A\u0438", sub: "\u0413\u043B\u0443\u0431\u0438\u043D\u0430 \u0443 \u0441\u043A\u0430\u043B", ll: [58.17, 56.547] },
-  { id: "povorot", name: "\u041F\u043E\u0432\u043E\u0440\u043E\u0442 \u043D\u0438\u0436\u0435 \u0413\u0430\u0440\u0435\u0439", sub: "\u042F\u043C\u0430 \u043D\u0430 \u0438\u0437\u043B\u0443\u0447\u0438\u043D\u0435", ll: [58.1545, 56.579] }
+  { id: "gari", name: "Затон у дачи", sub: "База · мелководье", ll: [58.16062, 56.56803], base: true },
+  { id: "perekat", name: "Перекат", sub: "Быстрая вода выше", ll: [58.1655, 56.5585] },
+  { id: "skaly", name: "Скалы у Кр. Слудки", sub: "Глубина у скал", ll: [58.17, 56.547] },
+  { id: "povorot", name: "Поворот ниже Гарей", sub: "Яма на излучине", ll: [58.1545, 56.579] }
 ];
 const LEVELS = [
-  { xp: 0, name: "\u0421\u0430\u043B\u0430\u0433\u0430" },
-  { xp: 100, name: "\u041D\u043E\u0432\u0438\u0447\u043E\u043A" },
-  { xp: 300, name: "\u041B\u044E\u0431\u0438\u0442\u0435\u043B\u044C" },
-  { xp: 700, name: "\u0420\u044B\u0431\u0430\u043A" },
-  { xp: 1400, name: "\u0411\u044B\u0432\u0430\u043B\u044B\u0439" },
-  { xp: 2500, name: "\u0417\u043D\u0430\u0442\u043E\u043A \u0440\u0435\u043A\u0438" },
-  { xp: 4200, name: "\u041C\u0430\u0441\u0442\u0435\u0440 \u0441\u043F\u0438\u043D\u043D\u0438\u043D\u0433\u0430" },
-  { xp: 6500, name: "\u0413\u0440\u043E\u0437\u0430 \u0445\u0438\u0449\u043D\u0438\u043A\u0430" },
-  { xp: 9500, name: "\u0425\u043E\u0437\u044F\u0438\u043D \u043F\u0435\u0440\u0435\u043A\u0430\u0442\u0430" },
-  { xp: 14e3, name: "\u041B\u0435\u0433\u0435\u043D\u0434\u0430 \u0427\u0443\u0441\u043E\u0432\u043E\u0439" }
+  { xp: 0, name: "Салага" },
+  { xp: 100, name: "Новичок" },
+  { xp: 300, name: "Любитель" },
+  { xp: 700, name: "Рыбак" },
+  { xp: 1400, name: "Бывалый" },
+  { xp: 2500, name: "Знаток реки" },
+  { xp: 4200, name: "Мастер спиннинга" },
+  { xp: 6500, name: "Гроза хищника" },
+  { xp: 9500, name: "Хозяин переката" },
+  { xp: 14e3, name: "Легенда Чусовой" }
 ];
 const ACH = {
-  first: { emoji: "\u{1FA78}", name: "\u041F\u0435\u0440\u0432\u0430\u044F \u043A\u0440\u043E\u0432\u044C", desc: "\u041F\u0435\u0440\u0432\u044B\u0439 \u0437\u0430\u043F\u0438\u0441\u0430\u043D\u043D\u044B\u0439 \u0443\u043B\u043E\u0432" },
-  dawn: { emoji: "\u{1F305}", name: "\u0420\u0430\u043D\u043D\u044F\u044F \u0437\u043E\u0440\u044C\u043A\u0430", desc: "\u0423\u043B\u043E\u0432 \u0434\u043E 6 \u0443\u0442\u0440\u0430" },
-  rain: { emoji: "\u{1F327}\uFE0F", name: "\u041C\u043E\u043A\u0440\u044B\u0439, \u043D\u043E \u0434\u043E\u0432\u043E\u043B\u044C\u043D\u044B\u0439", desc: "\u0423\u043B\u043E\u0432 \u0432 \u0434\u043E\u0436\u0434\u044C" },
-  defiant: { emoji: "\u{1F4C8}", name: "\u041F\u0440\u043E\u0442\u0438\u0432 \u043F\u0440\u043E\u0433\u043D\u043E\u0437\u0430", desc: "\u0423\u043B\u043E\u0432 \u043F\u0440\u0438 \u043A\u043B\u0451\u0432\u0435 \u043D\u0438\u0436\u0435 35" },
-  night: { emoji: "\u{1F319}", name: "\u041D\u043E\u0447\u043D\u043E\u0439 \u0434\u043E\u0437\u043E\u0440", desc: "\u0423\u043B\u043E\u0432 \u0441 23:00 \u0434\u043E 4:00" },
-  harius: { emoji: "\u26A1", name: "\u0413\u0440\u043E\u0437\u0430 \u043F\u0435\u0440\u0435\u043A\u0430\u0442\u0430", desc: "\u041F\u043E\u0439\u043C\u0430\u0442\u044C \u0445\u0430\u0440\u0438\u0443\u0441\u0430" },
-  pike: { emoji: "\u{1F40A}", name: "\u0429\u0443\u043A\u0430\u0440\u044C", desc: "\u041F\u043E\u0439\u043C\u0430\u0442\u044C \u0449\u0443\u043A\u0443" },
-  taimen: { emoji: "\u{1F451}", name: "\u041B\u0435\u0433\u0435\u043D\u0434\u0430 \u0427\u0443\u0441\u043E\u0432\u043E\u0439", desc: "\u041F\u043E\u0439\u043C\u0430\u0442\u044C \u0442\u0430\u0439\u043C\u0435\u043D\u044F" },
-  trophy: { emoji: "\u{1F3C6}", name: "\u0422\u0440\u043E\u0444\u0435\u0439\u0449\u0438\u043A", desc: "\u041F\u0435\u0440\u0432\u044B\u0439 \u0442\u0440\u043E\u0444\u0435\u0439" },
-  five_day: { emoji: "\u{1F525}", name: "\u0420\u0430\u0437\u0434\u0430\u0447\u0430", desc: "5 \u0443\u043B\u043E\u0432\u043E\u0432 \u0437\u0430 \u043E\u0434\u0438\u043D \u0434\u0435\u043D\u044C" },
-  scout: { emoji: "\u{1F9ED}", name: "\u0420\u0430\u0437\u0432\u0435\u0434\u0447\u0438\u043A", desc: "\u0423\u043B\u043E\u0432 \u043D\u0430 \u0432\u0441\u0435\u0445 4 \u0441\u043F\u043E\u0442\u0430\u0445" },
-  half_dex: { emoji: "\u{1F4D6}", name: "\u041F\u043E\u043B\u0434\u0435\u043A\u0441\u0430", desc: "5 \u0440\u0430\u0437\u043D\u044B\u0445 \u0432\u0438\u0434\u043E\u0432" },
-  release: { emoji: "\u{1F49A}", name: "\u0416\u0438\u0432\u0438, \u0440\u044B\u0431\u0430", desc: "\u041E\u0442\u043F\u0443\u0441\u0442\u0438\u0442\u044C \u0443\u043B\u043E\u0432" }
+  first: { emoji: "🩸", name: "Первая кровь", desc: "Первый записанный улов" },
+  dawn: { emoji: "🌅", name: "Ранняя зорька", desc: "Улов до 6 утра" },
+  rain: { emoji: "🌧️", name: "Мокрый, но довольный", desc: "Улов в дождь" },
+  defiant: { emoji: "📈", name: "Против прогноза", desc: "Улов при клёве ниже 35" },
+  night: { emoji: "🌙", name: "Ночной дозор", desc: "Улов с 23:00 до 4:00" },
+  harius: { emoji: "⚡", name: "Гроза переката", desc: "Поймать хариуса" },
+  pike: { emoji: "🐊", name: "Щукарь", desc: "Поймать щуку" },
+  sudak: { emoji: "🦷", name: "Клыкастый", desc: "Поймать судака" },
+  taimen: { emoji: "👑", name: "Легенда Чусовой", desc: "Поймать тайменя" },
+  trophy: { emoji: "🏆", name: "Трофейщик", desc: "Первый трофей" },
+  five_day: { emoji: "🔥", name: "Раздача", desc: "5 уловов за один день" },
+  scout: { emoji: "🧭", name: "Разведчик", desc: "Улов на всех 4 спотах" },
+  half_dex: { emoji: "📖", name: "Полдекса", desc: "5 разных видов" },
+  release: { emoji: "💚", name: "Живи, рыба", desc: "Отпустить улов" }
 };
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-const fmt = (w) => w >= 1 ? Math.round(w * 100) / 100 + " \u043A\u0433" : Math.round(w * 1e3) + " \u0433";
+const fmt = (w) => w >= 1 ? Math.round(w * 100) / 100 + " кг" : Math.round(w * 1e3) + " г";
 const hPaToMm = (h) => h * 0.7500617;
-const compass = (d) => ["\u0421", "\u0421\u0412", "\u0412", "\u042E\u0412", "\u042E", "\u042E\u0417", "\u0417", "\u0421\u0417"][Math.round(d / 45) % 8];
+const compass = (d) => ["С", "СВ", "В", "ЮВ", "Ю", "ЮЗ", "З", "СЗ"][Math.round(d / 45) % 8];
 const buzz = (p) => {
   var _a;
   try {
@@ -1104,19 +1105,19 @@ const buzz = (p) => {
 const dayKey = (ts) => new Date(ts).toLocaleDateString("sv");
 const fmtClock = (d) => new Date(d).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
 const fmtDate = (ts) => new Date(ts).toLocaleDateString("ru-RU", { day: "numeric", month: "short" });
-const WD = ["\u0412\u0441", "\u041F\u043D", "\u0412\u0442", "\u0421\u0440", "\u0427\u0442", "\u041F\u0442", "\u0421\u0431"];
+const WD = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
 const trophyThreshold = (f) => f.min + (f.max - f.min) * 0.82;
 const isRainCode = (c) => c >= 51 && c <= 67 || c >= 80 && c <= 82 || c >= 95;
 const WCODE = (c) => {
-  if (c === 0) return { t: "\u042F\u0441\u043D\u043E", e: "\u2600\uFE0F" };
-  if (c <= 2) return { t: "\u041C\u0430\u043B\u043E\u043E\u0431\u043B\u0430\u0447\u043D\u043E", e: "\u{1F324}\uFE0F" };
-  if (c === 3) return { t: "\u041F\u0430\u0441\u043C\u0443\u0440\u043D\u043E", e: "\u2601\uFE0F" };
-  if (c <= 48) return { t: "\u0422\u0443\u043C\u0430\u043D", e: "\u{1F32B}\uFE0F" };
-  if (c <= 67) return { t: "\u0414\u043E\u0436\u0434\u044C", e: "\u{1F327}\uFE0F" };
-  if (c <= 77) return { t: "\u0421\u043D\u0435\u0433", e: "\u{1F328}\uFE0F" };
-  if (c <= 82) return { t: "\u041B\u0438\u0432\u0435\u043D\u044C", e: "\u{1F327}\uFE0F" };
-  if (c <= 86) return { t: "\u0421\u043D\u0435\u0433\u043E\u043F\u0430\u0434", e: "\u{1F328}\uFE0F" };
-  return { t: "\u0413\u0440\u043E\u0437\u0430", e: "\u26C8\uFE0F" };
+  if (c === 0) return { t: "Ясно", e: "☀️" };
+  if (c <= 2) return { t: "Малооблачно", e: "🌤️" };
+  if (c === 3) return { t: "Пасмурно", e: "☁️" };
+  if (c <= 48) return { t: "Туман", e: "🌫️" };
+  if (c <= 67) return { t: "Дождь", e: "🌧️" };
+  if (c <= 77) return { t: "Снег", e: "🌨️" };
+  if (c <= 82) return { t: "Ливень", e: "🌧️" };
+  if (c <= 86) return { t: "Снегопад", e: "🌨️" };
+  return { t: "Гроза", e: "⛈️" };
 };
 function FishGlyph({ shape = "panfish", color = "#888", size = 64, dim = false, trophy = false }) {
   const cfg = { panfish: { rx: 26, ry: 18 }, deep: { rx: 23, ry: 23 }, predator: { rx: 35, ry: 11 } }[shape];
@@ -1130,46 +1131,46 @@ function biteIndex(c) {
   const why = [];
   if (c.isDawnDusk) {
     idx += 20;
-    why.push({ t: "\u0417\u043E\u0440\u044C\u043A\u0430 \u2014 \u043F\u0438\u043A \u0430\u043A\u0442\u0438\u0432\u043D\u043E\u0441\u0442\u0438", good: true });
+    why.push({ t: "Зорька — пик активности", good: true });
   } else if (c.brightMidday) {
     idx -= 10;
-    why.push({ t: "\u042F\u0440\u043A\u043E\u0435 \u0441\u043E\u043B\u043D\u0446\u0435 \u0432 \u043F\u043E\u043B\u0434\u0435\u043D\u044C \u2014 \u043A\u043B\u0451\u0432 \u0432\u044F\u043B\u044B\u0439", good: false });
+    why.push({ t: "Яркое солнце в полдень — клёв вялый", good: false });
   } else if (!c.isDay) {
     idx -= 4;
-    why.push({ t: "\u041D\u043E\u0447\u044C \u2014 \u0431\u043E\u043B\u044C\u0448\u0438\u043D\u0441\u0442\u0432\u043E \u0440\u044B\u0431\u044B \u043F\u0430\u0441\u0441\u0438\u0432\u043D\u043E", good: false });
+    why.push({ t: "Ночь — большинство рыбы пассивно", good: false });
   }
   if (c.pTrendHpa <= -1 && c.pTrendHpa >= -4) {
     idx += 12;
-    why.push({ t: "\u0414\u0430\u0432\u043B\u0435\u043D\u0438\u0435 \u043F\u043B\u0430\u0432\u043D\u043E \u043F\u0430\u0434\u0430\u0435\u0442 \u2014 \u0440\u044B\u0431\u0430 \u0436\u0438\u0440\u0443\u0435\u0442", good: true });
+    why.push({ t: "Давление плавно падает — рыба жирует", good: true });
   } else if (c.pTrendHpa < -4) {
     idx += 4;
-    why.push({ t: "\u0414\u0430\u0432\u043B\u0435\u043D\u0438\u0435 \u0440\u0435\u0437\u043A\u043E \u043F\u0430\u0434\u0430\u0435\u0442 \u2014 \u0438\u0434\u0451\u0442 \u0444\u0440\u043E\u043D\u0442", good: true });
+    why.push({ t: "Давление резко падает — идёт фронт", good: true });
   } else if (c.pTrendHpa > 3) {
     idx -= 14;
-    why.push({ t: "\u0414\u0430\u0432\u043B\u0435\u043D\u0438\u0435 \u0440\u0435\u0437\u043A\u043E \u0440\u0430\u0441\u0442\u0451\u0442 \u2014 \u0440\u044B\u0431\u0430 \u0443 \u0434\u043D\u0430", good: false });
+    why.push({ t: "Давление резко растёт — рыба у дна", good: false });
   } else if (c.pTrendHpa > 1) {
     idx -= 8;
-    why.push({ t: "\u0414\u0430\u0432\u043B\u0435\u043D\u0438\u0435 \u0440\u0430\u0441\u0442\u0451\u0442 \u2014 \u043A\u043B\u0451\u0432 \u0441\u043B\u0430\u0431\u0435\u0435", good: false });
+    why.push({ t: "Давление растёт — клёв слабее", good: false });
   } else {
     idx += 6;
-    why.push({ t: "\u0414\u0430\u0432\u043B\u0435\u043D\u0438\u0435 \u0441\u0442\u0430\u0431\u0438\u043B\u044C\u043D\u043E\u0435", good: true });
+    why.push({ t: "Давление стабильное", good: true });
   }
   if (c.pHpa > 1025) idx -= 6;
   else if (c.pHpa < 995) idx -= 4;
   if (c.clouds >= 60) {
     idx += 8;
-    why.push({ t: "\u041F\u0430\u0441\u043C\u0443\u0440\u043D\u043E \u2014 \u0445\u0438\u0449\u043D\u0438\u043A \u0433\u0443\u043B\u044F\u0435\u0442", good: true });
+    why.push({ t: "Пасмурно — хищник гуляет", good: true });
   } else if (c.clouds >= 30) idx += 4;
   else if (!c.brightMidday) idx += 2;
   if (c.windMs >= 1 && c.windMs <= 5) {
     idx += 8;
-    why.push({ t: "\u041B\u0451\u0433\u043A\u0430\u044F \u0440\u044F\u0431\u044C \u2014 \u0442\u043E \u0447\u0442\u043E \u043D\u0430\u0434\u043E", good: true });
+    why.push({ t: "Лёгкая рябь — то что надо", good: true });
   } else if (c.windMs < 1) {
     idx -= 4;
-    why.push({ t: "\u0428\u0442\u0438\u043B\u044C \u2014 \u0440\u044B\u0431\u0430 \u043E\u0441\u0442\u043E\u0440\u043E\u0436\u043D\u0430", good: false });
+    why.push({ t: "Штиль — рыба осторожна", good: false });
   } else if (c.windMs > 8) {
     idx -= 12;
-    why.push({ t: "\u0421\u0438\u043B\u044C\u043D\u044B\u0439 \u0432\u0435\u0442\u0435\u0440", good: false });
+    why.push({ t: "Сильный ветер", good: false });
   }
   if (c.windDir != null) {
     if (c.windDir >= 45 && c.windDir <= 135) idx -= 5;
@@ -1178,7 +1179,7 @@ function biteIndex(c) {
   if (c.tempC >= 8 && c.tempC <= 20) idx += 6;
   else if (c.tempC > 27) {
     idx -= 8;
-    why.push({ t: "\u0416\u0430\u0440\u0430 \u2014 \u0440\u044B\u0431\u0430 \u043D\u0430 \u0433\u043B\u0443\u0431\u0438\u043D\u0435", good: false });
+    why.push({ t: "Жара — рыба на глубине", good: false });
   } else if (c.tempC < 3) idx -= 4;
   return { idx: Math.round(clamp(idx, 5, 98)), why };
 }
@@ -1211,6 +1212,13 @@ function speciesMod(id, c) {
       m += c.isDawnDusk ? 5 : 0;
       m -= c.brightMidday && c.pHpa > 1022 ? 10 : 0;
       m -= c.windMs > 8 ? 4 : 0;
+      break;
+    case "sudak":
+      m += !c.isDay ? 10 : 0;
+      m += c.isDawnDusk ? 8 : 0;
+      m += c.clouds > 60 ? 4 : 0;
+      m += c.tempC >= 12 && c.tempC <= 24 ? 4 : 0;
+      m -= c.brightMidday ? 10 : 0;
       break;
     case "leshch":
       m += c.isDawnDusk ? 6 : 0;
@@ -1304,16 +1312,16 @@ function computeForecast(w) {
   for (const id of FISH_IDS) species[id] = clamp(idx + speciesMod(id, cond), 5, 99);
   let verdict, vColor;
   if (idx >= 70) {
-    verdict = "\u041E\u0442\u043B\u0438\u0447\u043D\u044B\u0439 \u043A\u043B\u0451\u0432";
+    verdict = "Отличный клёв";
     vColor = "#52d27a";
   } else if (idx >= 50) {
-    verdict = "\u0425\u043E\u0440\u043E\u0448\u0438\u0439 \u043A\u043B\u0451\u0432";
+    verdict = "Хороший клёв";
     vColor = "#9ed24a";
   } else if (idx >= 35) {
-    verdict = "\u0421\u0440\u0435\u0434\u043D\u0438\u0439 \u043A\u043B\u0451\u0432";
+    verdict = "Средний клёв";
     vColor = "#f5b942";
   } else {
-    verdict = "\u0421\u043B\u0430\u0431\u044B\u0439 \u043A\u043B\u0451\u0432";
+    verdict = "Слабый клёв";
     vColor = "#e06b4a";
   }
   const windows = [];
@@ -1325,10 +1333,10 @@ function computeForecast(w) {
       if (center < new Date(now.getTime() - 60 * 6e4)) return null;
       const c = condAt(w, center, { isDay: true, isDawnDusk: true });
       const { idx: idx2 } = biteIndex(c);
-      return { day: d, label, range: `${fmtClock(from)}\u2013${fmtClock(to)}`, idx: idx2, code: c.code, ts: +center };
+      return { day: d, label, range: `${fmtClock(from)}–${fmtClock(to)}`, idx: idx2, code: c.code, ts: +center };
     };
-    const m = mkWin(new Date(+sr + 60 * 6e4), "\u0443\u0442\u0440\u043E", new Date(+sr - 30 * 6e4), new Date(+sr + 150 * 6e4));
-    const e = mkWin(new Date(+ss - 60 * 6e4), "\u0432\u0435\u0447\u0435\u0440", new Date(+ss - 120 * 6e4), new Date(+ss + 30 * 6e4));
+    const m = mkWin(new Date(+sr + 60 * 6e4), "утро", new Date(+sr - 30 * 6e4), new Date(+sr + 150 * 6e4));
+    const e = mkWin(new Date(+ss - 60 * 6e4), "вечер", new Date(+ss - 120 * 6e4), new Date(+ss + 30 * 6e4));
     if (m) windows.push(m);
     if (e) windows.push(e);
   }
@@ -1347,16 +1355,16 @@ function computeForecast(w) {
 function buildQuest(forecast) {
   if (!forecast) return null;
   if (forecast.index < 40) {
-    return { type: "any", emoji: "\u{1F4AA}", title: "\u0412\u043E\u043F\u0440\u0435\u043A\u0438 \u0441\u0442\u0438\u0445\u0438\u0438", desc: "\u041A\u043B\u0451\u0432 \u0441\u043B\u0430\u0431\u044B\u0439 \u2014 \u043B\u044E\u0431\u043E\u0439 \u0443\u043B\u043E\u0432 \u0441\u0435\u0433\u043E\u0434\u043D\u044F \u0432\u0434\u0432\u043E\u0435 \u0446\u0435\u043D\u043D\u0435\u0435", mult: 2 };
+    return { type: "any", emoji: "💪", title: "Вопреки стихии", desc: "Клёв слабый — любой улов сегодня вдвое ценнее", mult: 2 };
   }
   const cand = FISH_IDS.filter((id) => FISH[id].rarity !== "common" && FISH[id].rarity !== "legendary").sort((a, b) => forecast.species[b] - forecast.species[a]);
   const top = cand.find((id) => forecast.species[id] >= 55);
   if (top) {
     const xp = Math.round(80 * RARITY[FISH[top].rarity].mult);
-    return { type: "fish", fid: top, emoji: "\u{1F3AF}", title: `\u0426\u0435\u043B\u044C \u0434\u043D\u044F: ${FISH[top].name.toLowerCase()}`, desc: `\u0410\u043A\u0442\u0438\u0432\u043D\u043E\u0441\u0442\u044C ${forecast.species[top]}% \u2014 \u0441\u0430\u043C\u043E\u0435 \u0432\u0440\u0435\u043C\u044F`, xp };
+    return { type: "fish", fid: top, emoji: "🎯", title: `Цель дня: ${FISH[top].name.toLowerCase()}`, desc: `Активность ${forecast.species[top]}% — самое время`, xp };
   }
   const c = [...FISH_IDS].sort((a, b) => forecast.species[b] - forecast.species[a])[0];
-  return { type: "fish", fid: c, emoji: "\u{1F3AF}", title: `\u0426\u0435\u043B\u044C \u0434\u043D\u044F: ${FISH[c].name.toLowerCase()}`, desc: "\u0421\u0430\u043C\u044B\u0439 \u0430\u043A\u0442\u0438\u0432\u043D\u044B\u0439 \u0432\u0438\u0434 \u0441\u0435\u0433\u043E\u0434\u043D\u044F", xp: 60 };
+  return { type: "fish", fid: c, emoji: "🎯", title: `Цель дня: ${FISH[c].name.toLowerCase()}`, desc: "Самый активный вид сегодня", xp: 60 };
 }
 function levelInfo(xp) {
   let i = 0;
@@ -1445,14 +1453,14 @@ function ChusovayaGo() {
     const now = new Date(ts);
     const lines = [];
     const flags = {};
-    lines.push({ t: `${f.name} \xB7 ${RARITY[f.rarity].label.toLowerCase()}`, v: Math.round(20 * RARITY[f.rarity].mult) });
+    lines.push({ t: `${f.name} · ${RARITY[f.rarity].label.toLowerCase()}`, v: Math.round(20 * RARITY[f.rarity].mult) });
     if (dex[fid].count === 0) {
       flags.newSpecies = true;
-      lines.push({ t: "\u041D\u043E\u0432\u044B\u0439 \u0432\u0438\u0434 \u0432 \u0420\u044B\u0431\u0430\u0434\u0435\u043A\u0441\u0435!", v: 100 });
+      lines.push({ t: "Новый вид в Рыбадексе!", v: 100 });
     }
     if (w >= trophyThreshold(f)) {
       flags.trophy = true;
-      lines.push({ t: "\u0422\u0420\u041E\u0424\u0415\u0419", v: 150 });
+      lines.push({ t: "ТРОФЕЙ", v: 150 });
     }
     let dawnDusk = false;
     if (forecast) {
@@ -1464,11 +1472,11 @@ function ChusovayaGo() {
     }
     if (dawnDusk) {
       flags.dawn = true;
-      lines.push({ t: "\u0417\u043E\u043B\u043E\u0442\u043E\u0439 \u0447\u0430\u0441 (\u0437\u043E\u0440\u044C\u043A\u0430)", v: 15 });
+      lines.push({ t: "Золотой час (зорька)", v: 15 });
     }
     if (released) {
       flags.released = true;
-      lines.push({ t: "\u041E\u0442\u043F\u0443\u0449\u0435\u043D\u0430 \u2014 \u043A\u0430\u0440\u043C\u0430", v: 10 });
+      lines.push({ t: "Отпущена — карма", v: 10 });
     }
     let biteIdx = null;
     if (weather) {
@@ -1482,20 +1490,20 @@ function ChusovayaGo() {
     if (biteIdx !== null && biteIdx < 35) {
       flags.defiant = true;
       const bonus = Math.round(subtotal * 0.5);
-      lines.push({ t: "\u0412\u043E\u043F\u0440\u0435\u043A\u0438 \u043F\u0440\u043E\u0433\u043D\u043E\u0437\u0443 +50%", v: bonus });
+      lines.push({ t: "Вопреки прогнозу +50%", v: bonus });
       subtotal += bonus;
     }
     let questHit = false;
     if (quest && !questDone) {
       if (quest.type === "fish" && quest.fid === fid) {
         questHit = true;
-        lines.push({ t: "\u041A\u0432\u0435\u0441\u0442 \u0434\u043D\u044F \u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D", v: quest.xp });
+        lines.push({ t: "Квест дня выполнен", v: quest.xp });
         subtotal += quest.xp;
       }
       if (quest.type === "any") {
         questHit = true;
         const b = subtotal;
-        lines.push({ t: "\u041A\u0432\u0435\u0441\u0442: \u0443\u043B\u043E\u0432 \xD72", v: b });
+        lines.push({ t: "Квест: улов ×2", v: b });
         subtotal += b;
       }
     }
@@ -1523,6 +1531,7 @@ function ChusovayaGo() {
     tryUnlock("defiant", flags.defiant);
     tryUnlock("harius", fid === "harius");
     tryUnlock("pike", fid === "shchuka");
+    tryUnlock("sudak", fid === "sudak");
     tryUnlock("taimen", fid === "taimen");
     tryUnlock("trophy", flags.trophy);
     tryUnlock("release", !!released);
@@ -1546,7 +1555,7 @@ function ChusovayaGo() {
   const deleteCatch = (id) => {
     const c = catches.find((x) => x.id === id);
     if (!c) return;
-    if (!window.confirm(`\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u0437\u0430\u043F\u0438\u0441\u044C: ${FISH[c.fid].name} ${fmt(c.w)}? XP \u0442\u043E\u0436\u0435 \u0441\u043F\u0438\u0448\u0435\u0442\u0441\u044F.`)) return;
+    if (!window.confirm(`Удалить запись: ${FISH[c.fid].name} ${fmt(c.w)}? XP тоже спишется.`)) return;
     setCatches((arr) => arr.filter((x) => x.id !== id));
     setXp((x) => Math.max(0, x - (c.xp || 0)));
   };
@@ -1556,7 +1565,7 @@ function ChusovayaGo() {
     const best = catches.reduce((b, c) => !b || c.w > b.w ? c : b, null);
     return { trips, totalW, best, count: catches.length, species: FISH_IDS.filter((id) => dex[id].count > 0).length };
   }, [catches, dex]);
-  return /* @__PURE__ */ React.createElement("div", { style: S.app }, /* @__PURE__ */ React.createElement("style", null, CSS), /* @__PURE__ */ React.createElement("header", { style: S.hud }, /* @__PURE__ */ React.createElement("div", { style: S.logo }, /* @__PURE__ */ React.createElement("span", { style: S.logoIcon }, "\u{1F3A3}"), /* @__PURE__ */ React.createElement("span", null, "\u0427\u0423\u0421\u041E\u0412\u0410\u042F ", /* @__PURE__ */ React.createElement("span", { style: { color: "#f5b942" } }, "GO"))), /* @__PURE__ */ React.createElement("div", { style: S.lvlChip }, "\u0423\u0440. ", lvl.n, " \xB7 ", lvl.name)), /* @__PURE__ */ React.createElement("div", { style: S.xpBarWrap, title: lvl.next ? `${lvl.toNext} XP \u0434\u043E \xAB${lvl.next.name}\xBB` : "\u041C\u0430\u043A\u0441\u0438\u043C\u0443\u043C" }, /* @__PURE__ */ React.createElement("div", { style: __spreadProps(__spreadValues({}, S.xpBarFill), { width: `${Math.round(lvl.prog * 100)}%` }) }), /* @__PURE__ */ React.createElement("span", { style: S.xpBarText }, xp, " XP", lvl.next ? ` \xB7 \u0434\u043E \u0441\u043B\u0435\u0434. ${lvl.toNext}` : " \xB7 MAX")), /* @__PURE__ */ React.createElement("main", { style: S.main }, tab === "home" && /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ React.createElement("div", { style: S.app }, /* @__PURE__ */ React.createElement("style", null, CSS), /* @__PURE__ */ React.createElement("header", { style: S.hud }, /* @__PURE__ */ React.createElement("div", { style: S.logo }, /* @__PURE__ */ React.createElement("span", { style: S.logoIcon }, "🎣"), /* @__PURE__ */ React.createElement("span", null, "ЧУСОВАЯ ", /* @__PURE__ */ React.createElement("span", { style: { color: "#f5b942" } }, "GO"))), /* @__PURE__ */ React.createElement("div", { style: S.lvlChip }, "Ур. ", lvl.n, " · ", lvl.name)), /* @__PURE__ */ React.createElement("div", { style: S.xpBarWrap, title: lvl.next ? `${lvl.toNext} XP до «${lvl.next.name}»` : "Максимум" }, /* @__PURE__ */ React.createElement("div", { style: __spreadProps(__spreadValues({}, S.xpBarFill), { width: `${Math.round(lvl.prog * 100)}%` }) }), /* @__PURE__ */ React.createElement("span", { style: S.xpBarText }, xp, " XP", lvl.next ? ` · до след. ${lvl.toNext}` : " · MAX")), /* @__PURE__ */ React.createElement("main", { style: S.main }, tab === "home" && /* @__PURE__ */ React.createElement(
     HomeView,
     {
       forecast,
@@ -1568,11 +1577,11 @@ function ChusovayaGo() {
       onLog: () => setLogOpen(true),
       onMap: () => setMapOpen(true)
     }
-  ), tab === "wx" && /* @__PURE__ */ React.createElement(ForecastView, { forecast, wxState, onRetry: loadWeather }), tab === "dex" && /* @__PURE__ */ React.createElement(DexView, { dex, ach }), tab === "journal" && /* @__PURE__ */ React.createElement(JournalView, { catches, stats, onDelete: deleteCatch })), /* @__PURE__ */ React.createElement("nav", { style: S.nav }, [["home", "\u{1F3D5}\uFE0F", "\u0413\u043B\u0430\u0432\u043D\u0430\u044F"], ["wx", "\u{1F324}\uFE0F", "\u041F\u0440\u043E\u0433\u043D\u043E\u0437"], ["dex", "\u{1F4D6}", "\u0420\u044B\u0431\u0430\u0434\u0435\u043A\u0441"], ["journal", "\u{1F4D3}", "\u0416\u0443\u0440\u043D\u0430\u043B"]].map(([k, i, l]) => /* @__PURE__ */ React.createElement("button", { key: k, onClick: () => setTab(k), style: __spreadValues(__spreadValues({}, S.navBtn), tab === k ? S.navOn : {}) }, /* @__PURE__ */ React.createElement("span", { style: S.navIcon }, i), l))), logOpen && /* @__PURE__ */ React.createElement(LogWizard, { weather, onCancel: () => setLogOpen(false), onSave: logCatch, lastSpot: (_a = catches[0]) == null ? void 0 : _a.spotId }), mapOpen && /* @__PURE__ */ React.createElement(MapOverlay, { spotPos, onMove: (id, lat, lng) => setSpotPos((p) => __spreadProps(__spreadValues({}, p), { [id]: [lat, lng] })), onClose: () => setMapOpen(false) }), celebration && /* @__PURE__ */ React.createElement(Celebration, { data: celebration, onClose: () => setCelebration(null) }));
+  ), tab === "wx" && /* @__PURE__ */ React.createElement(ForecastView, { forecast, wxState, onRetry: loadWeather }), tab === "dex" && /* @__PURE__ */ React.createElement(DexView, { dex, ach }), tab === "journal" && /* @__PURE__ */ React.createElement(JournalView, { catches, stats, onDelete: deleteCatch }), tab === "guide" && /* @__PURE__ */ React.createElement(GuideView, null)), /* @__PURE__ */ React.createElement("nav", { style: S.nav }, [["home", "🏕️", "Главная"], ["wx", "🌤️", "Прогноз"], ["dex", "📖", "Рыбадекс"], ["journal", "📓", "Журнал"], ["guide", "🎓", "Гайд"]].map(([k, i, l]) => /* @__PURE__ */ React.createElement("button", { key: k, onClick: () => setTab(k), style: __spreadValues(__spreadValues({}, S.navBtn), tab === k ? S.navOn : {}) }, /* @__PURE__ */ React.createElement("span", { style: S.navIcon }, i), l))), logOpen && /* @__PURE__ */ React.createElement(LogWizard, { weather, onCancel: () => setLogOpen(false), onSave: logCatch, lastSpot: (_a = catches[0]) == null ? void 0 : _a.spotId }), mapOpen && /* @__PURE__ */ React.createElement(MapOverlay, { spotPos, onMove: (id, lat, lng) => setSpotPos((p) => __spreadProps(__spreadValues({}, p), { [id]: [lat, lng] })), onClose: () => setMapOpen(false) }), celebration && /* @__PURE__ */ React.createElement(Celebration, { data: celebration, onClose: () => setCelebration(null) }));
 }
 function HomeView({ forecast, wxState, onRetryWx, quest, questDone, catches, onLog, onMap }) {
   const recent = catches.slice(0, 3);
-  return /* @__PURE__ */ React.createElement("div", null, forecast ? /* @__PURE__ */ React.createElement("div", { style: __spreadProps(__spreadValues({}, S.biteCard), { borderColor: forecast.vColor + "55" }) }, /* @__PURE__ */ React.createElement("div", { style: S.biteLeft }, /* @__PURE__ */ React.createElement("div", { style: S.cardKicker }, "\u041A\u043B\u0451\u0432 \u0441\u0435\u0439\u0447\u0430\u0441"), /* @__PURE__ */ React.createElement("div", { style: __spreadProps(__spreadValues({}, S.biteVerdict), { color: forecast.vColor }) }, forecast.verdict), /* @__PURE__ */ React.createElement("div", { style: S.biteMeta }, WCODE(forecast.cond.code).e, " ", Math.round(forecast.cond.tempC), "\xB0 \xB7 ", Math.round(forecast.cond.pMm), " \u043C\u043C ", forecast.cond.pTrendMm < -0.4 ? "\u2193" : forecast.cond.pTrendMm > 0.4 ? "\u2191" : "\u2192", " \xB7 \u{1F4A8} ", forecast.cond.windMs.toFixed(1), " \u043C/\u0441")), /* @__PURE__ */ React.createElement("div", { style: S.gaugeSm }, /* @__PURE__ */ React.createElement("svg", { width: "64", height: "64", viewBox: "0 0 64 64" }, /* @__PURE__ */ React.createElement("circle", { cx: "32", cy: "32", r: "26", fill: "none", stroke: "#1d3a44", strokeWidth: "7" }), /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ React.createElement("div", null, forecast ? /* @__PURE__ */ React.createElement("div", { style: __spreadProps(__spreadValues({}, S.biteCard), { borderColor: forecast.vColor + "55" }) }, /* @__PURE__ */ React.createElement("div", { style: S.biteLeft }, /* @__PURE__ */ React.createElement("div", { style: S.cardKicker }, "Клёв сейчас"), /* @__PURE__ */ React.createElement("div", { style: __spreadProps(__spreadValues({}, S.biteVerdict), { color: forecast.vColor }) }, forecast.verdict), /* @__PURE__ */ React.createElement("div", { style: S.biteMeta }, WCODE(forecast.cond.code).e, " ", Math.round(forecast.cond.tempC), "° · ", Math.round(forecast.cond.pMm), " мм ", forecast.cond.pTrendMm < -0.4 ? "↓" : forecast.cond.pTrendMm > 0.4 ? "↑" : "→", " · 💨 ", forecast.cond.windMs.toFixed(1), " м/с")), /* @__PURE__ */ React.createElement("div", { style: S.gaugeSm }, /* @__PURE__ */ React.createElement("svg", { width: "64", height: "64", viewBox: "0 0 64 64" }, /* @__PURE__ */ React.createElement("circle", { cx: "32", cy: "32", r: "26", fill: "none", stroke: "#1d3a44", strokeWidth: "7" }), /* @__PURE__ */ React.createElement(
     "circle",
     {
       cx: "32",
@@ -1585,7 +1594,7 @@ function HomeView({ forecast, wxState, onRetryWx, quest, questDone, catches, onL
       strokeDasharray: `${forecast.index / 100 * 163.4} 163.4`,
       transform: "rotate(-90 32 32)"
     }
-  )), /* @__PURE__ */ React.createElement("span", { style: S.gaugeSmNum }, forecast.index))) : /* @__PURE__ */ React.createElement("div", { style: S.biteCard }, /* @__PURE__ */ React.createElement("div", { style: S.biteLeft }, /* @__PURE__ */ React.createElement("div", { style: S.cardKicker }, "\u041A\u043B\u0451\u0432 \u0441\u0435\u0439\u0447\u0430\u0441"), /* @__PURE__ */ React.createElement("div", { style: S.muted }, wxState === "loading" ? "\u0422\u044F\u043D\u0443 \u043F\u043E\u0433\u043E\u0434\u0443 \u043F\u043E \u0434\u0430\u0447\u0435\u2026" : "\u041F\u043E\u0433\u043E\u0434\u0430 \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u043D\u0430")), wxState === "error" && /* @__PURE__ */ React.createElement("button", { onClick: onRetryWx, style: S.miniBtn }, "\u21BB")), quest && /* @__PURE__ */ React.createElement("div", { style: __spreadProps(__spreadValues({}, S.questCard), { opacity: questDone ? 0.75 : 1 }) }, /* @__PURE__ */ React.createElement("div", { style: S.questEmoji }, questDone ? "\u2705" : quest.emoji), /* @__PURE__ */ React.createElement("div", { style: { flex: 1, minWidth: 0 } }, /* @__PURE__ */ React.createElement("div", { style: S.questTitle }, quest.title), /* @__PURE__ */ React.createElement("div", { style: S.questDesc }, questDone ? "\u0412\u044B\u043F\u043E\u043B\u043D\u0435\u043D\u043E! \u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0430." : quest.desc)), /* @__PURE__ */ React.createElement("div", { style: S.questXp }, quest.type === "any" ? "\xD72" : `+${quest.xp}`)), /* @__PURE__ */ React.createElement("button", { onClick: onLog, style: S.cta, className: "cast" }, "\u{1F3A3} \u0417\u0430\u043F\u0438\u0441\u0430\u0442\u044C \u0443\u043B\u043E\u0432"), /* @__PURE__ */ React.createElement("p", { style: S.ctaHint }, "\u041F\u043E\u0439\u043C\u0430\u043B \u2014 \u0442\u0440\u0438 \u0442\u0430\u043F\u0430, \u0438 \u0440\u044B\u0431\u0430 \u0432 \u0436\u0443\u0440\u043D\u0430\u043B\u0435. \u041F\u043E\u0433\u043E\u0434\u0430 \u043F\u0440\u0438\u0446\u0435\u043F\u0438\u0442\u0441\u044F \u0441\u0430\u043C\u0430."), (forecast == null ? void 0 : forecast.best) && /* @__PURE__ */ React.createElement("div", { style: S.winCard }, /* @__PURE__ */ React.createElement("div", { style: S.cardKicker }, "\u23F0 \u041B\u0443\u0447\u0448\u0435\u0435 \u043E\u043A\u043D\u043E \u043D\u0430 3 \u0434\u043D\u044F"), /* @__PURE__ */ React.createElement("div", { style: S.winBest }, forecast.best.day === 0 ? "\u0421\u0435\u0433\u043E\u0434\u043D\u044F" : forecast.best.day === 1 ? "\u0417\u0430\u0432\u0442\u0440\u0430" : WD[new Date(forecast.best.ts).getDay()], ", ", forecast.best.label, " \xB7 ", forecast.best.range, /* @__PURE__ */ React.createElement("span", { style: { color: "#52d27a", marginLeft: 8 } }, "\u043A\u043B\u0451\u0432 ", forecast.best.idx)), /* @__PURE__ */ React.createElement("div", { style: S.winList }, forecast.windows.filter((w) => w !== forecast.best).slice(0, 4).map((w, i) => /* @__PURE__ */ React.createElement("span", { key: i, style: S.winChip }, w.day === 0 ? "\u0421\u0435\u0433" : w.day === 1 ? "\u0417\u0430\u0432" : WD[new Date(w.ts).getDay()], " ", w.label, " \xB7 ", w.idx)))), recent.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { marginTop: 18 } }, /* @__PURE__ */ React.createElement("div", { style: S.cardKicker }, "\u041F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0435 \u0443\u043B\u043E\u0432\u044B"), recent.map((c) => /* @__PURE__ */ React.createElement(CatchRow, { key: c.id, c, compact: true }))), /* @__PURE__ */ React.createElement("button", { onClick: onMap, style: S.mapLink }, "\u{1F5FA}\uFE0F \u041C\u043E\u0438 \u0441\u043F\u043E\u0442\u044B \u043D\u0430 \u043A\u0430\u0440\u0442\u0435"));
+  )), /* @__PURE__ */ React.createElement("span", { style: S.gaugeSmNum }, forecast.index))) : /* @__PURE__ */ React.createElement("div", { style: S.biteCard }, /* @__PURE__ */ React.createElement("div", { style: S.biteLeft }, /* @__PURE__ */ React.createElement("div", { style: S.cardKicker }, "Клёв сейчас"), /* @__PURE__ */ React.createElement("div", { style: S.muted }, wxState === "loading" ? "Тяну погоду по даче…" : "Погода недоступна")), wxState === "error" && /* @__PURE__ */ React.createElement("button", { onClick: onRetryWx, style: S.miniBtn }, "↻")), quest && /* @__PURE__ */ React.createElement("div", { style: __spreadProps(__spreadValues({}, S.questCard), { opacity: questDone ? 0.75 : 1 }) }, /* @__PURE__ */ React.createElement("div", { style: S.questEmoji }, questDone ? "✅" : quest.emoji), /* @__PURE__ */ React.createElement("div", { style: { flex: 1, minWidth: 0 } }, /* @__PURE__ */ React.createElement("div", { style: S.questTitle }, quest.title), /* @__PURE__ */ React.createElement("div", { style: S.questDesc }, questDone ? "Выполнено! Награда получена." : quest.desc)), /* @__PURE__ */ React.createElement("div", { style: S.questXp }, quest.type === "any" ? "×2" : `+${quest.xp}`)), /* @__PURE__ */ React.createElement("button", { onClick: onLog, style: S.cta, className: "cast" }, "🎣 Записать улов"), /* @__PURE__ */ React.createElement("p", { style: S.ctaHint }, "Поймал — три тапа, и рыба в журнале. Погода прицепится сама."), (forecast == null ? void 0 : forecast.best) && /* @__PURE__ */ React.createElement("div", { style: S.winCard }, /* @__PURE__ */ React.createElement("div", { style: S.cardKicker }, "⏰ Лучшее окно на 3 дня"), /* @__PURE__ */ React.createElement("div", { style: S.winBest }, forecast.best.day === 0 ? "Сегодня" : forecast.best.day === 1 ? "Завтра" : WD[new Date(forecast.best.ts).getDay()], ", ", forecast.best.label, " · ", forecast.best.range, /* @__PURE__ */ React.createElement("span", { style: { color: "#52d27a", marginLeft: 8 } }, "клёв ", forecast.best.idx)), /* @__PURE__ */ React.createElement("div", { style: S.winList }, forecast.windows.filter((w) => w !== forecast.best).slice(0, 4).map((w, i) => /* @__PURE__ */ React.createElement("span", { key: i, style: S.winChip }, w.day === 0 ? "Сег" : w.day === 1 ? "Зав" : WD[new Date(w.ts).getDay()], " ", w.label, " · ", w.idx)))), recent.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { marginTop: 18 } }, /* @__PURE__ */ React.createElement("div", { style: S.cardKicker }, "Последние уловы"), recent.map((c) => /* @__PURE__ */ React.createElement(CatchRow, { key: c.id, c, compact: true }))), /* @__PURE__ */ React.createElement("button", { onClick: onMap, style: S.mapLink }, "🗺️ Мои споты на карте"));
 }
 function LogWizard({ weather, onCancel, onSave, lastSpot }) {
   var _a;
@@ -1598,7 +1607,7 @@ function LogWizard({ weather, onCancel, onSave, lastSpot }) {
   const f = fid ? FISH[fid] : null;
   const stepSize = w < 1 ? 0.05 : w < 3 ? 0.1 : 0.25;
   const nowH = (/* @__PURE__ */ new Date()).getHours();
-  const whenOpts = [{ h: -1, l: "\u0421\u0435\u0439\u0447\u0430\u0441" }, { h: 6, l: "\u0423\u0442\u0440\u043E\u043C ~6:00" }, { h: 13, l: "\u0414\u043D\u0451\u043C ~13:00" }, { h: 20, l: "\u0412\u0435\u0447\u0435\u0440\u043E\u043C ~20:00" }].filter((o) => o.h === -1 || o.h <= nowH);
+  const whenOpts = [{ h: -1, l: "Сейчас" }, { h: 6, l: "Утром ~6:00" }, { h: 13, l: "Днём ~13:00" }, { h: 20, l: "Вечером ~20:00" }].filter((o) => o.h === -1 || o.h <= nowH);
   const pickSpecies = (id) => {
     setFid(id);
     const ff = FISH[id];
@@ -1629,10 +1638,10 @@ function LogWizard({ weather, onCancel, onSave, lastSpot }) {
     }
     onSave({ fid, w, spotId, ts, wx, released });
   };
-  return /* @__PURE__ */ React.createElement("div", { style: S.overlay }, /* @__PURE__ */ React.createElement("div", { style: S.wizHead }, /* @__PURE__ */ React.createElement("button", { onClick: step === "species" ? onCancel : () => setStep(step === "weight" ? "species" : step === "spot" ? "weight" : "spot"), style: S.back }, "\u2039 ", step === "species" ? "\u041E\u0442\u043C\u0435\u043D\u0430" : "\u041D\u0430\u0437\u0430\u0434"), /* @__PURE__ */ React.createElement("span", { style: S.wizStep }, ["species", "weight", "spot", "confirm"].indexOf(step) + 1, "/4")), step === "species" && /* @__PURE__ */ React.createElement("div", { style: S.wizBody }, /* @__PURE__ */ React.createElement("h2", { style: S.wizH }, "\u041A\u043E\u0433\u043E \u043F\u043E\u0439\u043C\u0430\u043B?"), /* @__PURE__ */ React.createElement("div", { style: S.spGrid }, FISH_IDS.map((id) => {
+  return /* @__PURE__ */ React.createElement("div", { style: S.overlay }, /* @__PURE__ */ React.createElement("div", { style: S.wizHead }, /* @__PURE__ */ React.createElement("button", { onClick: step === "species" ? onCancel : () => setStep(step === "weight" ? "species" : step === "spot" ? "weight" : "spot"), style: S.back }, "‹ ", step === "species" ? "Отмена" : "Назад"), /* @__PURE__ */ React.createElement("span", { style: S.wizStep }, ["species", "weight", "spot", "confirm"].indexOf(step) + 1, "/4")), step === "species" && /* @__PURE__ */ React.createElement("div", { style: S.wizBody }, /* @__PURE__ */ React.createElement("h2", { style: S.wizH }, "Кого поймал?"), /* @__PURE__ */ React.createElement("div", { style: S.spGrid }, FISH_IDS.map((id) => {
     const ff = FISH[id], r = RARITY[ff.rarity];
     return /* @__PURE__ */ React.createElement("button", { key: id, onClick: () => pickSpecies(id), style: S.spCell, className: "tapcell" }, /* @__PURE__ */ React.createElement(FishGlyph, { shape: ff.shape, color: ff.color, size: 54 }), /* @__PURE__ */ React.createElement("span", { style: S.spName }, ff.name), /* @__PURE__ */ React.createElement("span", { style: __spreadProps(__spreadValues({}, S.spDot), { background: r.color }) }));
-  }))), step === "weight" && f && /* @__PURE__ */ React.createElement("div", { style: S.wizBody }, /* @__PURE__ */ React.createElement("h2", { style: S.wizH }, f.name, " \u2014 \u0432\u0435\u0441?"), /* @__PURE__ */ React.createElement("div", { style: S.wCenter }, /* @__PURE__ */ React.createElement(FishGlyph, { shape: f.shape, color: f.color, size: 90, trophy: w >= trophyThreshold(f) }), /* @__PURE__ */ React.createElement("div", { style: S.wValue }, fmt(w)), w >= trophyThreshold(f) && /* @__PURE__ */ React.createElement("div", { style: S.wTrophy }, "\u{1F3C6} \u0422\u0440\u043E\u0444\u0435\u0439\u043D\u044B\u0439 \u0440\u0430\u0437\u043C\u0435\u0440!"), /* @__PURE__ */ React.createElement("div", { style: S.wBtns }, /* @__PURE__ */ React.createElement("button", { style: S.wBtn, className: "cast", onClick: () => setW((x) => Math.max(0.05, Math.round((x - stepSize) * 100) / 100)) }, "\u2212"), /* @__PURE__ */ React.createElement("button", { style: S.wBtn, className: "cast", onClick: () => setW((x) => Math.round((x + stepSize) * 100) / 100) }, "+")), /* @__PURE__ */ React.createElement("div", { style: S.wChips }, chips.map((c, i) => /* @__PURE__ */ React.createElement("button", { key: i, onClick: () => setW(c), style: __spreadValues(__spreadValues({}, S.wChip), Math.abs(c - w) < 1e-3 ? S.wChipOn : {}) }, fmt(c))))), /* @__PURE__ */ React.createElement("button", { onClick: () => setStep("spot"), style: S.cta, className: "cast" }, "\u0414\u0430\u043B\u044C\u0448\u0435 \u2192")), step === "spot" && /* @__PURE__ */ React.createElement("div", { style: S.wizBody }, /* @__PURE__ */ React.createElement("h2", { style: S.wizH }, "\u0413\u0434\u0435?"), /* @__PURE__ */ React.createElement("div", { style: S.spotList }, SPOTS.map((s) => /* @__PURE__ */ React.createElement(
+  }))), step === "weight" && f && /* @__PURE__ */ React.createElement("div", { style: S.wizBody }, /* @__PURE__ */ React.createElement("h2", { style: S.wizH }, f.name, " — вес?"), /* @__PURE__ */ React.createElement("div", { style: S.wCenter }, /* @__PURE__ */ React.createElement(FishGlyph, { shape: f.shape, color: f.color, size: 90, trophy: w >= trophyThreshold(f) }), /* @__PURE__ */ React.createElement("div", { style: S.wValue }, fmt(w)), w >= trophyThreshold(f) && /* @__PURE__ */ React.createElement("div", { style: S.wTrophy }, "🏆 Трофейный размер!"), /* @__PURE__ */ React.createElement("div", { style: S.wBtns }, /* @__PURE__ */ React.createElement("button", { style: S.wBtn, className: "cast", onClick: () => setW((x) => Math.max(0.05, Math.round((x - stepSize) * 100) / 100)) }, "−"), /* @__PURE__ */ React.createElement("button", { style: S.wBtn, className: "cast", onClick: () => setW((x) => Math.round((x + stepSize) * 100) / 100) }, "+")), /* @__PURE__ */ React.createElement("div", { style: S.wChips }, chips.map((c, i) => /* @__PURE__ */ React.createElement("button", { key: i, onClick: () => setW(c), style: __spreadValues(__spreadValues({}, S.wChip), Math.abs(c - w) < 1e-3 ? S.wChipOn : {}) }, fmt(c))))), /* @__PURE__ */ React.createElement("button", { onClick: () => setStep("spot"), style: S.cta, className: "cast" }, "Дальше →")), step === "spot" && /* @__PURE__ */ React.createElement("div", { style: S.wizBody }, /* @__PURE__ */ React.createElement("h2", { style: S.wizH }, "Где?"), /* @__PURE__ */ React.createElement("div", { style: S.spotList }, SPOTS.map((s) => /* @__PURE__ */ React.createElement(
     "button",
     {
       key: s.id,
@@ -1643,54 +1652,54 @@ function LogWizard({ weather, onCancel, onSave, lastSpot }) {
       style: __spreadValues(__spreadValues({}, S.spotBtn), spotId === s.id ? S.spotBtnOn : {}),
       className: "tapcell"
     },
-    /* @__PURE__ */ React.createElement("span", { style: { fontSize: 20 } }, s.base ? "\u{1F3E0}" : "\u{1F3A3}"),
+    /* @__PURE__ */ React.createElement("span", { style: { fontSize: 20 } }, s.base ? "🏠" : "🎣"),
     /* @__PURE__ */ React.createElement("span", null, /* @__PURE__ */ React.createElement("b", null, s.name), /* @__PURE__ */ React.createElement("br", null), /* @__PURE__ */ React.createElement("small", { style: { color: "#8aa3ad" } }, s.sub))
-  )))), step === "confirm" && f && /* @__PURE__ */ React.createElement("div", { style: S.wizBody }, /* @__PURE__ */ React.createElement("h2", { style: S.wizH }, "\u041F\u0440\u043E\u0432\u0435\u0440\u044C \u0438 \u0437\u0430\u043F\u0438\u0441\u044B\u0432\u0430\u0439"), /* @__PURE__ */ React.createElement("div", { style: S.confCard }, /* @__PURE__ */ React.createElement(FishGlyph, { shape: f.shape, color: f.color, size: 70, trophy: w >= trophyThreshold(f) }), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 8, fontWeight: 900, fontSize: 19 } }, f.name, " \xB7 ", fmt(w)), /* @__PURE__ */ React.createElement("div", { style: { color: "#8aa3ad", fontSize: 13.5, marginTop: 3 } }, (_a = SPOTS.find((s) => s.id === spotId)) == null ? void 0 : _a.name)), /* @__PURE__ */ React.createElement("div", { style: S.confBlock }, /* @__PURE__ */ React.createElement("div", { style: S.confLabel }, "\u041A\u043E\u0433\u0434\u0430 \u043F\u043E\u0439\u043C\u0430\u043B"), /* @__PURE__ */ React.createElement("div", { style: S.wChips }, whenOpts.map((o) => /* @__PURE__ */ React.createElement("button", { key: o.h, onClick: () => setWhenH(o.h), style: __spreadValues(__spreadValues({}, S.wChip), whenH === o.h ? S.wChipOn : {}) }, o.l)))), /* @__PURE__ */ React.createElement("button", { onClick: () => setReleased((r) => !r), style: __spreadValues(__spreadValues({}, S.relToggle), released ? S.relOn : {}) }, released ? "\u{1F49A} \u041E\u0442\u043F\u0443\u0441\u0442\u0438\u043B \u043E\u0431\u0440\u0430\u0442\u043D\u043E" : "\u{1F9FA} \u0417\u0430\u0431\u0440\u0430\u043B \u0432 \u0441\u0430\u0434\u043E\u043A", " ", /* @__PURE__ */ React.createElement("small", { style: { opacity: 0.7 } }, "(\u0442\u0430\u043F\u043D\u0438 \u0447\u0442\u043E\u0431\u044B \u0441\u043C\u0435\u043D\u0438\u0442\u044C)")), /* @__PURE__ */ React.createElement("button", { onClick: save, style: S.cta, className: "cast" }, "\u{1F3A3} \u0417\u0430\u043F\u0438\u0441\u0430\u0442\u044C \u0443\u043B\u043E\u0432")));
+  )))), step === "confirm" && f && /* @__PURE__ */ React.createElement("div", { style: S.wizBody }, /* @__PURE__ */ React.createElement("h2", { style: S.wizH }, "Проверь и записывай"), /* @__PURE__ */ React.createElement("div", { style: S.confCard }, /* @__PURE__ */ React.createElement(FishGlyph, { shape: f.shape, color: f.color, size: 70, trophy: w >= trophyThreshold(f) }), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 8, fontWeight: 900, fontSize: 19 } }, f.name, " · ", fmt(w)), /* @__PURE__ */ React.createElement("div", { style: { color: "#8aa3ad", fontSize: 13.5, marginTop: 3 } }, (_a = SPOTS.find((s) => s.id === spotId)) == null ? void 0 : _a.name)), /* @__PURE__ */ React.createElement("div", { style: S.confBlock }, /* @__PURE__ */ React.createElement("div", { style: S.confLabel }, "Когда поймал"), /* @__PURE__ */ React.createElement("div", { style: S.wChips }, whenOpts.map((o) => /* @__PURE__ */ React.createElement("button", { key: o.h, onClick: () => setWhenH(o.h), style: __spreadValues(__spreadValues({}, S.wChip), whenH === o.h ? S.wChipOn : {}) }, o.l)))), /* @__PURE__ */ React.createElement("button", { onClick: () => setReleased((r) => !r), style: __spreadValues(__spreadValues({}, S.relToggle), released ? S.relOn : {}) }, released ? "💚 Отпустил обратно" : "🧺 Забрал в садок", " ", /* @__PURE__ */ React.createElement("small", { style: { opacity: 0.7 } }, "(тапни чтобы сменить)")), /* @__PURE__ */ React.createElement("button", { onClick: save, style: S.cta, className: "cast" }, "🎣 Записать улов")));
 }
 function Celebration({ data, onClose }) {
   var _a, _b, _c, _d;
   const { entry, lines, total, unlocked, levelUp } = data;
   const f = FISH[entry.fid];
-  return /* @__PURE__ */ React.createElement("div", { style: S.overlay, onClick: onClose }, /* @__PURE__ */ React.createElement("div", { style: S.celebWrap, onClick: (e) => e.stopPropagation() }, /* @__PURE__ */ React.createElement(Sparkles, { gold: ((_a = entry.flags) == null ? void 0 : _a.trophy) || f.rarity === "legendary" }), /* @__PURE__ */ React.createElement("div", { className: "catchPop", style: { position: "relative", zIndex: 2 } }, /* @__PURE__ */ React.createElement(FishGlyph, { shape: f.shape, color: f.color, size: 110, trophy: (_b = entry.flags) == null ? void 0 : _b.trophy })), /* @__PURE__ */ React.createElement("h2", { style: __spreadProps(__spreadValues({}, S.celebTitle), { color: ((_c = entry.flags) == null ? void 0 : _c.trophy) ? "#f5b942" : "#eaf3f6" }) }, ((_d = entry.flags) == null ? void 0 : _d.trophy) ? "\u0422\u0420\u041E\u0424\u0415\u0419!" : "\u0415\u0441\u0442\u044C!"), /* @__PURE__ */ React.createElement("div", { style: S.celebXp }, "+", total, " XP"), levelUp && /* @__PURE__ */ React.createElement("div", { style: S.lvlUp }, "\u2B06\uFE0F \u041D\u043E\u0432\u044B\u0439 \u0443\u0440\u043E\u0432\u0435\u043D\u044C: ", levelUp.n, " \xB7 ", levelUp.name), /* @__PURE__ */ React.createElement("div", { style: S.celebLines }, lines.map((l, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: S.celebLine }, /* @__PURE__ */ React.createElement("span", null, l.t), /* @__PURE__ */ React.createElement("span", { style: { color: "#f5b942", fontWeight: 900 } }, "+", l.v)))), unlocked.length > 0 && /* @__PURE__ */ React.createElement("div", { style: S.celebAch }, unlocked.map((id) => /* @__PURE__ */ React.createElement("div", { key: id, style: S.celebAchItem }, ACH[id].emoji, " ", ACH[id].name))), /* @__PURE__ */ React.createElement("button", { onClick: onClose, style: S.cta, className: "cast" }, "\u0412 \u0436\u0443\u0440\u043D\u0430\u043B \u{1F4D3}")));
+  return /* @__PURE__ */ React.createElement("div", { style: S.overlay, onClick: onClose }, /* @__PURE__ */ React.createElement("div", { style: S.celebWrap, onClick: (e) => e.stopPropagation() }, /* @__PURE__ */ React.createElement(Sparkles, { gold: ((_a = entry.flags) == null ? void 0 : _a.trophy) || f.rarity === "legendary" }), /* @__PURE__ */ React.createElement("div", { className: "catchPop", style: { position: "relative", zIndex: 2 } }, /* @__PURE__ */ React.createElement(FishGlyph, { shape: f.shape, color: f.color, size: 110, trophy: (_b = entry.flags) == null ? void 0 : _b.trophy })), /* @__PURE__ */ React.createElement("h2", { style: __spreadProps(__spreadValues({}, S.celebTitle), { color: ((_c = entry.flags) == null ? void 0 : _c.trophy) ? "#f5b942" : "#eaf3f6" }) }, ((_d = entry.flags) == null ? void 0 : _d.trophy) ? "ТРОФЕЙ!" : "Есть!"), /* @__PURE__ */ React.createElement("div", { style: S.celebXp }, "+", total, " XP"), levelUp && /* @__PURE__ */ React.createElement("div", { style: S.lvlUp }, "⬆️ Новый уровень: ", levelUp.n, " · ", levelUp.name), /* @__PURE__ */ React.createElement("div", { style: S.celebLines }, lines.map((l, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: S.celebLine }, /* @__PURE__ */ React.createElement("span", null, l.t), /* @__PURE__ */ React.createElement("span", { style: { color: "#f5b942", fontWeight: 900 } }, "+", l.v)))), unlocked.length > 0 && /* @__PURE__ */ React.createElement("div", { style: S.celebAch }, unlocked.map((id) => /* @__PURE__ */ React.createElement("div", { key: id, style: S.celebAchItem }, ACH[id].emoji, " ", ACH[id].name))), /* @__PURE__ */ React.createElement("button", { onClick: onClose, style: S.cta, className: "cast" }, "В журнал 📓")));
 }
 function Sparkles({ gold }) {
   return /* @__PURE__ */ React.createElement("div", { style: S.sparkWrap }, Array.from({ length: 16 }).map((_, i) => /* @__PURE__ */ React.createElement("span", { key: i, className: "spark", style: { left: `${8 + Math.random() * 84}%`, background: gold ? "#f5b942" : ["#52d27a", "#3f9ae0", "#b06fe6"][i % 3], animationDelay: `${Math.random() * 0.5}s`, width: 6 + Math.random() * 7, height: 6 + Math.random() * 7 } })));
 }
 function ForecastView({ forecast, wxState, onRetry }) {
   var _a;
-  if (wxState === "loading" && !forecast) return /* @__PURE__ */ React.createElement("div", { style: S.center }, /* @__PURE__ */ React.createElement("div", { className: "bob", style: { fontSize: 40 } }, "\u{1F324}\uFE0F"), /* @__PURE__ */ React.createElement("p", { style: S.muted }, "\u0422\u044F\u043D\u0443 \u043F\u043E\u0433\u043E\u0434\u0443 \u043F\u043E \u043A\u043E\u043E\u0440\u0434\u0438\u043D\u0430\u0442\u0430\u043C \u0434\u0430\u0447\u0438\u2026"));
-  if (!forecast) return /* @__PURE__ */ React.createElement("div", { style: S.center }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 40 } }, "\u{1F4E1}"), /* @__PURE__ */ React.createElement("p", { style: S.muted }, "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044C \u043F\u043E\u0433\u043E\u0434\u0443."), /* @__PURE__ */ React.createElement("button", { onClick: onRetry, style: S.cta, className: "cast" }, "\u041F\u043E\u0432\u0442\u043E\u0440\u0438\u0442\u044C"));
+  if (wxState === "loading" && !forecast) return /* @__PURE__ */ React.createElement("div", { style: S.center }, /* @__PURE__ */ React.createElement("div", { className: "bob", style: { fontSize: 40 } }, "🌤️"), /* @__PURE__ */ React.createElement("p", { style: S.muted }, "Тяну погоду по координатам дачи…"));
+  if (!forecast) return /* @__PURE__ */ React.createElement("div", { style: S.center }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 40 } }, "📡"), /* @__PURE__ */ React.createElement("p", { style: S.muted }, "Не удалось загрузить погоду."), /* @__PURE__ */ React.createElement("button", { onClick: onRetry, style: S.cta, className: "cast" }, "Повторить"));
   const f = forecast, c = f.cond, wc = WCODE(c.code);
   const sorted = [...FISH_IDS].sort((a, b) => f.species[b] - f.species[a]);
-  const trendTxt = c.pTrendMm > 0.4 ? "\u2191 \u0440\u0430\u0441\u0442\u0451\u0442" : c.pTrendMm < -0.4 ? "\u2193 \u043F\u0430\u0434\u0430\u0435\u0442" : "\u2192 \u0440\u043E\u0432\u043D\u043E";
-  return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: __spreadProps(__spreadValues({}, S.verdictCard), { borderColor: f.vColor + "66" }) }, /* @__PURE__ */ React.createElement("div", { style: S.verdictTop }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: S.cardKicker }, "\u041A\u043B\u0451\u0432 \u0441\u0435\u0439\u0447\u0430\u0441"), /* @__PURE__ */ React.createElement("div", { style: __spreadProps(__spreadValues({}, S.verdictName), { color: f.vColor }) }, f.verdict)), /* @__PURE__ */ React.createElement("div", { style: S.gauge }, /* @__PURE__ */ React.createElement("svg", { width: "84", height: "84", viewBox: "0 0 84 84" }, /* @__PURE__ */ React.createElement("circle", { cx: "42", cy: "42", r: "34", fill: "none", stroke: "#1d3a44", strokeWidth: "9" }), /* @__PURE__ */ React.createElement("circle", { cx: "42", cy: "42", r: "34", fill: "none", stroke: f.vColor, strokeWidth: "9", strokeLinecap: "round", strokeDasharray: `${f.index / 100 * 213.6} 213.6`, transform: "rotate(-90 42 42)" })), /* @__PURE__ */ React.createElement("span", { style: S.gaugeNum }, f.index))), /* @__PURE__ */ React.createElement("button", { onClick: onRetry, style: S.refresh }, "\u21BB \u043E\u0431\u043D\u043E\u0432\u0438\u0442\u044C")), /* @__PURE__ */ React.createElement("div", { style: S.condGrid }, /* @__PURE__ */ React.createElement(Cond, { icon: wc.e, label: wc.t, val: `${Math.round(c.tempC)}\xB0C` }), /* @__PURE__ */ React.createElement(Cond, { icon: "\u{1F9ED}", label: `\u0414\u0430\u0432\u043B\u0435\u043D\u0438\u0435 ${trendTxt}`, val: `${Math.round(c.pMm)} \u043C\u043C` }), /* @__PURE__ */ React.createElement(Cond, { icon: "\u{1F4A8}", label: `\u0412\u0435\u0442\u0435\u0440 ${compass((_a = c.windDir) != null ? _a : 0)}`, val: `${c.windMs.toFixed(1)} \u043C/\u0441` }), /* @__PURE__ */ React.createElement(Cond, { icon: "\u2601\uFE0F", label: "\u041E\u0431\u043B\u0430\u0447\u043D\u043E\u0441\u0442\u044C", val: `${c.clouds}%` }), /* @__PURE__ */ React.createElement(Cond, { icon: "\u{1F305}", label: "\u0420\u0430\u0441\u0441\u0432\u0435\u0442", val: fmtClock(c.sunrise) }), /* @__PURE__ */ React.createElement(Cond, { icon: "\u{1F307}", label: "\u0417\u0430\u043A\u0430\u0442", val: fmtClock(c.sunset) })), f.windows.length > 0 && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("h3", { style: S.wxH3 }, "\u041E\u043A\u043D\u0430 \u043D\u0430 3 \u0434\u043D\u044F"), /* @__PURE__ */ React.createElement("div", { style: S.winTable }, f.windows.map((w, i) => {
+  const trendTxt = c.pTrendMm > 0.4 ? "↑ растёт" : c.pTrendMm < -0.4 ? "↓ падает" : "→ ровно";
+  return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: __spreadProps(__spreadValues({}, S.verdictCard), { borderColor: f.vColor + "66" }) }, /* @__PURE__ */ React.createElement("div", { style: S.verdictTop }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: S.cardKicker }, "Клёв сейчас"), /* @__PURE__ */ React.createElement("div", { style: __spreadProps(__spreadValues({}, S.verdictName), { color: f.vColor }) }, f.verdict)), /* @__PURE__ */ React.createElement("div", { style: S.gauge }, /* @__PURE__ */ React.createElement("svg", { width: "84", height: "84", viewBox: "0 0 84 84" }, /* @__PURE__ */ React.createElement("circle", { cx: "42", cy: "42", r: "34", fill: "none", stroke: "#1d3a44", strokeWidth: "9" }), /* @__PURE__ */ React.createElement("circle", { cx: "42", cy: "42", r: "34", fill: "none", stroke: f.vColor, strokeWidth: "9", strokeLinecap: "round", strokeDasharray: `${f.index / 100 * 213.6} 213.6`, transform: "rotate(-90 42 42)" })), /* @__PURE__ */ React.createElement("span", { style: S.gaugeNum }, f.index))), /* @__PURE__ */ React.createElement("button", { onClick: onRetry, style: S.refresh }, "↻ обновить")), /* @__PURE__ */ React.createElement("div", { style: S.condGrid }, /* @__PURE__ */ React.createElement(Cond, { icon: wc.e, label: wc.t, val: `${Math.round(c.tempC)}°C` }), /* @__PURE__ */ React.createElement(Cond, { icon: "🧭", label: `Давление ${trendTxt}`, val: `${Math.round(c.pMm)} мм` }), /* @__PURE__ */ React.createElement(Cond, { icon: "💨", label: `Ветер ${compass((_a = c.windDir) != null ? _a : 0)}`, val: `${c.windMs.toFixed(1)} м/с` }), /* @__PURE__ */ React.createElement(Cond, { icon: "☁️", label: "Облачность", val: `${c.clouds}%` }), /* @__PURE__ */ React.createElement(Cond, { icon: "🌅", label: "Рассвет", val: fmtClock(c.sunrise) }), /* @__PURE__ */ React.createElement(Cond, { icon: "🌇", label: "Закат", val: fmtClock(c.sunset) })), f.windows.length > 0 && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("h3", { style: S.wxH3 }, "Окна на 3 дня"), /* @__PURE__ */ React.createElement("div", { style: S.winTable }, f.windows.map((w, i) => {
     const isBest = f.best === w;
     const col = w.idx >= 65 ? "#52d27a" : w.idx >= 45 ? "#9ed24a" : w.idx >= 30 ? "#f5b942" : "#e0824a";
-    return /* @__PURE__ */ React.createElement("div", { key: i, style: __spreadValues(__spreadValues({}, S.winRow), isBest ? S.winRowBest : {}) }, /* @__PURE__ */ React.createElement("span", { style: S.winDay }, isBest && "\u2B50 ", w.day === 0 ? "\u0421\u0435\u0433\u043E\u0434\u043D\u044F" : w.day === 1 ? "\u0417\u0430\u0432\u0442\u0440\u0430" : WD[new Date(w.ts).getDay()], ", ", w.label), /* @__PURE__ */ React.createElement("span", { style: S.winTime }, w.range, " ", WCODE(w.code).e), /* @__PURE__ */ React.createElement("span", { style: __spreadProps(__spreadValues({}, S.winIdx), { color: col }) }, w.idx));
-  }))), /* @__PURE__ */ React.createElement("h3", { style: S.wxH3 }, "\u041F\u043E\u0447\u0435\u043C\u0443 \u0442\u0430\u043A"), /* @__PURE__ */ React.createElement("div", { style: S.whyList }, f.why.map((w, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: S.whyItem }, /* @__PURE__ */ React.createElement("span", { style: { color: w.good ? "#52d27a" : "#e0824a", fontWeight: 900 } }, w.good ? "+" : "\u2212"), /* @__PURE__ */ React.createElement("span", null, w.t)))), /* @__PURE__ */ React.createElement("h3", { style: S.wxH3 }, "\u0410\u043A\u0442\u0438\u0432\u043D\u043E\u0441\u0442\u044C \u043F\u043E \u0432\u0438\u0434\u0430\u043C"), /* @__PURE__ */ React.createElement("div", { style: S.actList }, sorted.map((id) => {
+    return /* @__PURE__ */ React.createElement("div", { key: i, style: __spreadValues(__spreadValues({}, S.winRow), isBest ? S.winRowBest : {}) }, /* @__PURE__ */ React.createElement("span", { style: S.winDay }, isBest && "⭐ ", w.day === 0 ? "Сегодня" : w.day === 1 ? "Завтра" : WD[new Date(w.ts).getDay()], ", ", w.label), /* @__PURE__ */ React.createElement("span", { style: S.winTime }, w.range, " ", WCODE(w.code).e), /* @__PURE__ */ React.createElement("span", { style: __spreadProps(__spreadValues({}, S.winIdx), { color: col }) }, w.idx));
+  }))), /* @__PURE__ */ React.createElement("h3", { style: S.wxH3 }, "Почему так"), /* @__PURE__ */ React.createElement("div", { style: S.whyList }, f.why.map((w, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: S.whyItem }, /* @__PURE__ */ React.createElement("span", { style: { color: w.good ? "#52d27a" : "#e0824a", fontWeight: 900 } }, w.good ? "+" : "−"), /* @__PURE__ */ React.createElement("span", null, w.t)))), /* @__PURE__ */ React.createElement("h3", { style: S.wxH3 }, "Активность по видам"), /* @__PURE__ */ React.createElement("div", { style: S.actList }, sorted.map((id) => {
     const f2 = FISH[id], a = f.species[id], r = RARITY[f2.rarity];
     const col = a >= 65 ? "#52d27a" : a >= 45 ? "#9ed24a" : a >= 30 ? "#f5b942" : "#e0824a";
     return /* @__PURE__ */ React.createElement("div", { key: id, style: S.actRow }, /* @__PURE__ */ React.createElement("span", { style: S.actGlyph }, /* @__PURE__ */ React.createElement(FishGlyph, { shape: f2.shape, color: f2.color, size: 32 })), /* @__PURE__ */ React.createElement("div", { style: { flex: 1, minWidth: 0 } }, /* @__PURE__ */ React.createElement("div", { style: S.actName }, f2.name, " ", /* @__PURE__ */ React.createElement("span", { style: __spreadProps(__spreadValues({}, S.actDot), { background: r.color }) })), /* @__PURE__ */ React.createElement("div", { style: S.actTrack }, /* @__PURE__ */ React.createElement("div", { style: __spreadProps(__spreadValues({}, S.actFill), { width: `${a}%`, background: col }) }))), /* @__PURE__ */ React.createElement("span", { style: __spreadProps(__spreadValues({}, S.actPct), { color: col }) }, a));
-  })), /* @__PURE__ */ React.createElement("p", { style: S.disclaimer }, "\u0416\u0438\u0432\u0430\u044F \u043F\u043E\u0433\u043E\u0434\u0430 Open-Meteo \u0434\u043B\u044F 58.16, 56.57. \u041C\u043E\u0434\u0435\u043B\u044C \u044D\u0432\u0440\u0438\u0441\u0442\u0438\u0447\u0435\u0441\u043A\u0430\u044F \u2014 \u043E\u0440\u0438\u0435\u043D\u0442\u0438\u0440, \u043D\u0435 \u0433\u0430\u0440\u0430\u043D\u0442\u0438\u044F. \u0420\u044B\u0431\u0430 \u043F\u0440\u043E\u0433\u043D\u043E\u0437\u043E\u0432 \u043D\u0435 \u0447\u0438\u0442\u0430\u0435\u0442 \u{1F609}"));
+  })), /* @__PURE__ */ React.createElement("p", { style: S.disclaimer }, "Живая погода Open-Meteo для 58.16, 56.57. Модель эвристическая — ориентир, не гарантия. Рыба прогнозов не читает 😉"));
 }
 function Cond({ icon, label, val }) {
   return /* @__PURE__ */ React.createElement("div", { style: S.condCell }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 18 } }, icon), /* @__PURE__ */ React.createElement("div", { style: { minWidth: 0 } }, /* @__PURE__ */ React.createElement("div", { style: S.condVal }, val), /* @__PURE__ */ React.createElement("div", { style: S.condLabel }, label)));
 }
 function DexView({ dex, ach }) {
   const got = FISH_IDS.filter((id) => dex[id].count > 0).length;
-  return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h2", { style: S.h2 }, "\u0420\u044B\u0431\u0430\u0434\u0435\u043A\u0441 ", /* @__PURE__ */ React.createElement("span", { style: { color: "#8aa3ad", fontSize: 14 } }, "\xB7 ", got, "/", FISH_IDS.length, " \u2014 \u0442\u043E\u043B\u044C\u043A\u043E \u0440\u0435\u0430\u043B\u044C\u043D\u044B\u0435 \u0443\u043B\u043E\u0432\u044B")), /* @__PURE__ */ React.createElement("div", { style: __spreadProps(__spreadValues({}, S.dexGrid), { marginTop: 12 }) }, FISH_IDS.map((id) => {
+  return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h2", { style: S.h2 }, "Рыбадекс ", /* @__PURE__ */ React.createElement("span", { style: { color: "#8aa3ad", fontSize: 14 } }, "· ", got, "/", FISH_IDS.length, " — только реальные уловы")), /* @__PURE__ */ React.createElement("div", { style: __spreadProps(__spreadValues({}, S.dexGrid), { marginTop: 12 }) }, FISH_IDS.map((id) => {
     const f = FISH[id], c = dex[id], g = c.count > 0, r = RARITY[f.rarity];
-    return /* @__PURE__ */ React.createElement("div", { key: id, style: __spreadProps(__spreadValues({}, S.dexCell), { borderColor: g ? r.color + "55" : "#22343c" }) }, c.trophy && /* @__PURE__ */ React.createElement("span", { style: S.trophyStar }, "\u2605"), /* @__PURE__ */ React.createElement(FishGlyph, { shape: f.shape, color: f.color, size: 56, dim: !g, trophy: c.trophy }), /* @__PURE__ */ React.createElement("span", { style: __spreadProps(__spreadValues({}, S.dexName), { color: g ? "#eaf3f6" : "#5a6e77" }) }, g ? f.name : "???"), g ? /* @__PURE__ */ React.createElement("span", { style: S.dexMeta }, "\xD7", c.count, " \xB7 \u0434\u043E ", fmt(c.best)) : /* @__PURE__ */ React.createElement("span", { style: S.dexMeta }, "\u043D\u0435 \u043F\u043E\u0439\u043C\u0430\u043D"));
-  })), /* @__PURE__ */ React.createElement("h3", { style: S.wxH3 }, "\u0410\u0447\u0438\u0432\u043A\u0438 \xB7 ", Object.keys(ach).length, "/", Object.keys(ACH).length), /* @__PURE__ */ React.createElement("div", { style: S.achList }, Object.entries(ACH).map(([id, a]) => {
+    return /* @__PURE__ */ React.createElement("div", { key: id, style: __spreadProps(__spreadValues({}, S.dexCell), { borderColor: g ? r.color + "55" : "#22343c" }) }, c.trophy && /* @__PURE__ */ React.createElement("span", { style: S.trophyStar }, "★"), /* @__PURE__ */ React.createElement(FishGlyph, { shape: f.shape, color: f.color, size: 56, dim: !g, trophy: c.trophy }), /* @__PURE__ */ React.createElement("span", { style: __spreadProps(__spreadValues({}, S.dexName), { color: g ? "#eaf3f6" : "#5a6e77" }) }, g ? f.name : "???"), g ? /* @__PURE__ */ React.createElement("span", { style: S.dexMeta }, "×", c.count, " · до ", fmt(c.best)) : /* @__PURE__ */ React.createElement("span", { style: S.dexMeta }, "не пойман"));
+  })), /* @__PURE__ */ React.createElement("h3", { style: S.wxH3 }, "Ачивки · ", Object.keys(ach).length, "/", Object.keys(ACH).length), /* @__PURE__ */ React.createElement("div", { style: S.achList }, Object.entries(ACH).map(([id, a]) => {
     const g = !!ach[id];
-    return /* @__PURE__ */ React.createElement("div", { key: id, style: __spreadProps(__spreadValues({}, S.achRow), { opacity: g ? 1 : 0.45 }) }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 22, filter: g ? "none" : "grayscale(1)" } }, a.emoji), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 800, fontSize: 14 } }, a.name), /* @__PURE__ */ React.createElement("div", { style: { color: "#8aa3ad", fontSize: 12 } }, a.desc)), g && /* @__PURE__ */ React.createElement("span", { style: { marginLeft: "auto", color: "#52d27a", fontWeight: 900 } }, "\u2713"));
+    return /* @__PURE__ */ React.createElement("div", { key: id, style: __spreadProps(__spreadValues({}, S.achRow), { opacity: g ? 1 : 0.45 }) }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 22, filter: g ? "none" : "grayscale(1)" } }, a.emoji), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 800, fontSize: 14 } }, a.name), /* @__PURE__ */ React.createElement("div", { style: { color: "#8aa3ad", fontSize: 12 } }, a.desc)), g && /* @__PURE__ */ React.createElement("span", { style: { marginLeft: "auto", color: "#52d27a", fontWeight: 900 } }, "✓"));
   })));
 }
 function CatchRow({ c, compact, onDelete }) {
   var _a, _b;
   const f = FISH[c.fid];
   const spot = SPOTS.find((s) => s.id === c.spotId);
-  return /* @__PURE__ */ React.createElement("div", { style: S.jRow }, /* @__PURE__ */ React.createElement("span", { style: S.actGlyph }, /* @__PURE__ */ React.createElement(FishGlyph, { shape: f.shape, color: f.color, size: compact ? 34 : 40, trophy: (_a = c.flags) == null ? void 0 : _a.trophy })), /* @__PURE__ */ React.createElement("div", { style: { flex: 1, minWidth: 0 } }, /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 900, fontSize: 14.5 } }, f.name, " \xB7 ", fmt(c.w), " ", ((_b = c.flags) == null ? void 0 : _b.trophy) && "\u{1F3C6}", c.released && " \u{1F49A}"), /* @__PURE__ */ React.createElement("div", { style: { color: "#8aa3ad", fontSize: 12, marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, spot == null ? void 0 : spot.name, " \xB7 ", fmtDate(c.ts), ", ", fmtClock(c.ts), c.wx ? ` \xB7 ${WCODE(c.wx.code).e} ${Math.round(c.wx.t)}\xB0` : "", c.biteIdx != null ? ` \xB7 \u043A\u043B\u0451\u0432 ${c.biteIdx}` : "")), /* @__PURE__ */ React.createElement("span", { style: { color: "#f5b942", fontWeight: 900, fontSize: 13, whiteSpace: "nowrap" } }, "+", c.xp), !compact && onDelete && /* @__PURE__ */ React.createElement("button", { onClick: () => onDelete(c.id), style: S.delBtn }, "\u2715"));
+  return /* @__PURE__ */ React.createElement("div", { style: S.jRow }, /* @__PURE__ */ React.createElement("span", { style: S.actGlyph }, /* @__PURE__ */ React.createElement(FishGlyph, { shape: f.shape, color: f.color, size: compact ? 34 : 40, trophy: (_a = c.flags) == null ? void 0 : _a.trophy })), /* @__PURE__ */ React.createElement("div", { style: { flex: 1, minWidth: 0 } }, /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 900, fontSize: 14.5 } }, f.name, " · ", fmt(c.w), " ", ((_b = c.flags) == null ? void 0 : _b.trophy) && "🏆", c.released && " 💚"), /* @__PURE__ */ React.createElement("div", { style: { color: "#8aa3ad", fontSize: 12, marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, spot == null ? void 0 : spot.name, " · ", fmtDate(c.ts), ", ", fmtClock(c.ts), c.wx ? ` · ${WCODE(c.wx.code).e} ${Math.round(c.wx.t)}°` : "", c.biteIdx != null ? ` · клёв ${c.biteIdx}` : "")), /* @__PURE__ */ React.createElement("span", { style: { color: "#f5b942", fontWeight: 900, fontSize: 13, whiteSpace: "nowrap" } }, "+", c.xp), !compact && onDelete && /* @__PURE__ */ React.createElement("button", { onClick: () => onDelete(c.id), style: S.delBtn }, "✕"));
 }
 function JournalView({ catches, stats, onDelete }) {
   var _a;
@@ -1700,7 +1709,7 @@ function JournalView({ catches, stats, onDelete }) {
     return Object.entries(m).sort((a, b) => b[1] - a[1]).slice(0, 5);
   }, [catches]);
   const maxCount = ((_a = byFish[0]) == null ? void 0 : _a[1]) || 1;
-  return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: S.statStrip }, /* @__PURE__ */ React.createElement(Stat, { label: "\u0412\u044B\u0435\u0437\u0434\u043E\u0432", value: stats.trips }), /* @__PURE__ */ React.createElement(Stat, { label: "\u0423\u043B\u043E\u0432\u043E\u0432", value: stats.count }), /* @__PURE__ */ React.createElement(Stat, { label: "\u041E\u0431\u0449\u0438\u0439 \u0432\u0435\u0441", value: stats.totalW ? fmt(stats.totalW) : "\u2014" }), /* @__PURE__ */ React.createElement(Stat, { label: "\u0420\u0435\u043A\u043E\u0440\u0434", value: stats.best ? fmt(stats.best.w) : "\u2014", sub: stats.best ? FISH[stats.best.fid].name : "" })), byFish.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 16 } }, /* @__PURE__ */ React.createElement("div", { style: S.cardKicker }, "\u041A\u0442\u043E \u043A\u043B\u044E\u0451\u0442 \u0447\u0430\u0449\u0435"), byFish.map(([id, n]) => /* @__PURE__ */ React.createElement("div", { key: id, style: { display: "flex", alignItems: "center", gap: 8, marginTop: 6 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12.5, fontWeight: 800, width: 64 } }, FISH[id].name), /* @__PURE__ */ React.createElement("div", { style: __spreadProps(__spreadValues({}, S.actTrack), { flex: 1, marginTop: 0 }) }, /* @__PURE__ */ React.createElement("div", { style: __spreadProps(__spreadValues({}, S.actFill), { width: `${n / maxCount * 100}%`, background: FISH[id].color }) })), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12.5, fontWeight: 900, color: "#8aa3ad", width: 22, textAlign: "right" } }, n)))), /* @__PURE__ */ React.createElement("h2", { style: S.h2 }, "\u0416\u0443\u0440\u043D\u0430\u043B"), catches.length === 0 ? /* @__PURE__ */ React.createElement("p", { style: __spreadProps(__spreadValues({}, S.muted), { marginTop: 10 }) }, "\u041F\u043E\u043A\u0430 \u043F\u0443\u0441\u0442\u043E. \u041F\u0435\u0440\u0432\u044B\u0439 \u0443\u043B\u043E\u0432 \u2014 \u0436\u043C\u0438 \xAB\u0417\u0430\u043F\u0438\u0441\u0430\u0442\u044C \u0443\u043B\u043E\u0432\xBB \u043D\u0430 \u0433\u043B\u0430\u0432\u043D\u043E\u0439. \u0414\u0430\u0436\u0435 \u043F\u043B\u043E\u0442\u0432\u0438\u0447\u043A\u0430 \u0441\u0447\u0438\u0442\u0430\u0435\u0442\u0441\u044F \u{1F609}") : /* @__PURE__ */ React.createElement("div", { style: { marginTop: 10 } }, catches.map((c) => /* @__PURE__ */ React.createElement(CatchRow, { key: c.id, c, onDelete }))));
+  return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: S.statStrip }, /* @__PURE__ */ React.createElement(Stat, { label: "Выездов", value: stats.trips }), /* @__PURE__ */ React.createElement(Stat, { label: "Уловов", value: stats.count }), /* @__PURE__ */ React.createElement(Stat, { label: "Общий вес", value: stats.totalW ? fmt(stats.totalW) : "—" }), /* @__PURE__ */ React.createElement(Stat, { label: "Рекорд", value: stats.best ? fmt(stats.best.w) : "—", sub: stats.best ? FISH[stats.best.fid].name : "" })), byFish.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 16 } }, /* @__PURE__ */ React.createElement("div", { style: S.cardKicker }, "Кто клюёт чаще"), byFish.map(([id, n]) => /* @__PURE__ */ React.createElement("div", { key: id, style: { display: "flex", alignItems: "center", gap: 8, marginTop: 6 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12.5, fontWeight: 800, width: 64 } }, FISH[id].name), /* @__PURE__ */ React.createElement("div", { style: __spreadProps(__spreadValues({}, S.actTrack), { flex: 1, marginTop: 0 }) }, /* @__PURE__ */ React.createElement("div", { style: __spreadProps(__spreadValues({}, S.actFill), { width: `${n / maxCount * 100}%`, background: FISH[id].color }) })), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12.5, fontWeight: 900, color: "#8aa3ad", width: 22, textAlign: "right" } }, n)))), /* @__PURE__ */ React.createElement("h2", { style: S.h2 }, "Журнал"), catches.length === 0 ? /* @__PURE__ */ React.createElement("p", { style: __spreadProps(__spreadValues({}, S.muted), { marginTop: 10 }) }, "Пока пусто. Первый улов — жми «Записать улов» на главной. Даже плотвичка считается 😉") : /* @__PURE__ */ React.createElement("div", { style: { marginTop: 10 } }, catches.map((c) => /* @__PURE__ */ React.createElement(CatchRow, { key: c.id, c, onDelete }))));
 }
 function Stat({ label, value, sub }) {
   return /* @__PURE__ */ React.createElement("div", { style: S.stat }, /* @__PURE__ */ React.createElement("span", { style: S.statValue }, value), /* @__PURE__ */ React.createElement("span", { style: S.statLabel }, label), sub && /* @__PURE__ */ React.createElement("span", { style: S.statSub }, sub));
@@ -1734,7 +1743,7 @@ function MapOverlay({ spotPos, onMove, onClose }) {
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
     SPOTS.forEach((s) => {
       const ll = spotPos[s.id] || s.ll;
-      const icon = L.divIcon({ className: "", html: `<div class="leaf-pin ${s.base ? "base" : ""}">${s.base ? "\u{1F3E0}" : "\u{1F3A3}"}</div>`, iconSize: [34, 34], iconAnchor: [17, 17] });
+      const icon = L.divIcon({ className: "", html: `<div class="leaf-pin ${s.base ? "base" : ""}">${s.base ? "🏠" : "🎣"}</div>`, iconSize: [34, 34], iconAnchor: [17, 17] });
       const m = L.marker(ll, { draggable: true, icon }).addTo(map);
       m.bindTooltip(s.name, { direction: "top", offset: [0, -14] });
       m.on("dragend", (e) => {
@@ -1748,7 +1757,73 @@ function MapOverlay({ spotPos, onMove, onClose }) {
       mapRef.current = null;
     };
   }, [state]);
-  return /* @__PURE__ */ React.createElement("div", { style: S.overlay }, /* @__PURE__ */ React.createElement("div", { style: S.wizHead }, /* @__PURE__ */ React.createElement("button", { onClick: onClose, style: S.back }, "\u2039 \u0413\u043E\u0442\u043E\u0432\u043E"), /* @__PURE__ */ React.createElement("span", { style: S.wizStep }, "\u043F\u0435\u0440\u0435\u0442\u0430\u0449\u0438 \u043C\u0435\u0442\u043A\u0438 \u043D\u0430 \u0441\u0432\u043E\u0438 \u0442\u043E\u0447\u043A\u0438")), /* @__PURE__ */ React.createElement("div", { style: { flex: 1, borderRadius: 18, overflow: "hidden", margin: "0 14px 14px", border: "1px solid #1d4250", position: "relative" } }, state === "error" ? /* @__PURE__ */ React.createElement("div", { style: S.center }, "\u041A\u0430\u0440\u0442\u0430 \u043D\u0435 \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u043B\u0430\u0441\u044C. \u0421\u043F\u043E\u0442\u044B \u0432\u0441\u0451 \u0440\u0430\u0432\u043D\u043E \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u044B \u043F\u0440\u0438 \u0437\u0430\u043F\u0438\u0441\u0438 \u0443\u043B\u043E\u0432\u0430.") : /* @__PURE__ */ React.createElement("div", { ref: mapEl, style: { width: "100%", height: "100%" } }), state === "loading" && /* @__PURE__ */ React.createElement("div", { style: S.mapLoading }, "\u0417\u0430\u0433\u0440\u0443\u0436\u0430\u044E \u043A\u0430\u0440\u0442\u0443\u2026")));
+  return /* @__PURE__ */ React.createElement("div", { style: S.overlay }, /* @__PURE__ */ React.createElement("div", { style: S.wizHead }, /* @__PURE__ */ React.createElement("button", { onClick: onClose, style: S.back }, "‹ Готово"), /* @__PURE__ */ React.createElement("span", { style: S.wizStep }, "перетащи метки на свои точки")), /* @__PURE__ */ React.createElement("div", { style: { flex: 1, borderRadius: 18, overflow: "hidden", margin: "0 14px 14px", border: "1px solid #1d4250", position: "relative" } }, state === "error" ? /* @__PURE__ */ React.createElement("div", { style: S.center }, "Карта не загрузилась. Споты всё равно доступны при записи улова.") : /* @__PURE__ */ React.createElement("div", { ref: mapEl, style: { width: "100%", height: "100%" } }), state === "loading" && /* @__PURE__ */ React.createElement("div", { style: S.mapLoading }, "Загружаю карту…")));
+}
+const GUIDE = [
+  { id: "rig", emoji: "🔧", title: "Собрать снасть", steps: [
+    "Соедини колена, кольца выстрой строго в одну линию.",
+    "Катушку — в держатель, гайку затяни от руки.",
+    "Леску протяни через ВСЕ кольца, ни одного не пропусти.",
+    "К плетёнке привяжи поводок (узел паломар), к застёжке поводка — блесну.",
+    "Фрикцион: потяни леску рукой у катушки — должна сходить при сильном плавном рывке, не раньше."
+  ] },
+  { id: "cast", emoji: "🎯", title: "Заброс", steps: [
+    "Открой дужку, леску прижми пальцем к удилищу.",
+    "Замах через плечо, посыл вперёд — палец отпускай, когда удилище смотрит на ~45° вверх.",
+    "Приманка приводнилась — закрой дужку рукой, не оборотом ручки.",
+    "Сделай 10 тренировочных забросов с берега до выхода на воду."
+  ] },
+  { id: "retrieve", emoji: "🌀", title: "Проводка", steps: [
+    "Вертушка: кинул, дал 2–3 секунды утонуть, крути равномерно. Лепесток должен «тикать» в руку.",
+    "Колебалка: дай упасть до дна на счёт (~1 метр в секунду), подними 2–3 оборотами, снова пауза. Это «ступенька».",
+    "Не клюёт — сначала меняй скорость и глубину, потом уже приманку."
+  ] },
+  { id: "strike", emoji: "⚡", title: "Поклёвка и подсечка", steps: [
+    "Удар или тычок в руку, леска пошла в сторону — коротко и резко подсеки вверх.",
+    "Тяни плавно, без рывков. Рыба упирается — не форсируй, фрикцион отработает.",
+    "У самого сапа рыба часто делает последний рывок — будь готов."
+  ] },
+  { id: "land", emoji: "🐟", title: "Рыба в руках", steps: [
+    "Щуку и судака бери только липгрипом за нижнюю челюсть. Пальцы в пасть — нельзя.",
+    "Крючок доставай корцангом, не руками.",
+    "Взвесил, сфоткал — решай: в садок или обратно. За отпущенную апка начисляет карму."
+  ] },
+  { id: "safety", emoji: "🛟", title: "Безопасность на сапе", steps: [
+    "Жилет надет всегда. Лиш пристёгнут всегда. Не обсуждается.",
+    "Дальше 300 метров от берега не уходи — всё интересное ближе.",
+    "Якорный фал 15 м = якорься до глубины ~10 м. Глубже — не вставай на якорь вообще.",
+    "Ветер от 5–6 м/с или гроза на горизонте — сворачиваешься, без вариантов.",
+    "Телефон в герме. Близким — куда пошёл и во сколько вернёшься."
+  ] },
+  { id: "law", emoji: "⚖️", title: "Что можно забрать", steps: [
+    "Минимальные размеры (Волжско-Камский бассейн): щука 32 см, судак 40 см, лещ 25 см, жерех 40 см. Мельче — отпускай.",
+    "Суточная норма — порядка 5 кг на человека.",
+    "Правила периодически обновляются — актуальные для Пермского края проверь перед сезоном."
+  ] }
+];
+const FAQ = [
+  ["Полчаса ни поклёвки. Что делать?", "Правило: 15 минут без поклёвки — смени скорость или глубину, 30 минут — смени место. Рыба либо не здесь, либо не хочет эту подачу."],
+  ["Зацепился за дно. Как спасать блесну?", "Не дёргай со всей силы. На сапе подплыви с другой стороны и потяни под другим углом — половина зацепов отдаёт приманку."],
+  ["На катушке «борода». Паника?", "Без паники: ослабь леску и распутывай с конца. Совсем жесть — отрежь кусок и перевяжи поводок, займёт 3 минуты."],
+  ["Щука откусила блесну", "Значит, ловил без поводка. Поводок — всегда. И проверяй узел после каждой пойманной рыбы."],
+  ["Как понять глубину без эхолота?", "Колебалкой на счёт: кинул и считай секунды до провиса лески. Секунда ≈ метр."],
+  ["Села крупная — руки трясутся", "Не форсируй. Фрикцион трещит — это нормально, он для того и нужен. Качай: поднял удилищем — выбрал слабину катушкой, и так по кругу."],
+  ["Что взять кроме снастей?", "Вода, репеллент, очки, кепка, перекус, повербанк. Телефон в герме — там теперь твой журнал."],
+  ["Клюёт одна мелочь", "Укрупни приманку или сместись глубже на свал — крупная рыба стоит на перепадах глубин."]
+];
+function GuideView() {
+  const [open, setOpen] = useState(null);
+  const GS = {
+    sec: { background: "rgba(13,42,52,0.5)", border: "1px solid #22343c", borderRadius: 14, marginBottom: 8, overflow: "hidden" },
+    head: { display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "13px 14px", background: "none", border: "none", color: INK, fontFamily: "'Nunito',sans-serif", fontSize: 14.5, fontWeight: 900, textAlign: "left", cursor: "pointer" },
+    body: { padding: "0 14px 13px" },
+    step: { display: "flex", gap: 8, fontSize: 13.5, color: "#c4d6dc", lineHeight: 1.45, marginTop: 7 },
+    q: { fontWeight: 900, fontSize: 13.5, color: INK },
+    a: { fontSize: 13, color: "#a8bcc4", lineHeight: 1.45, marginTop: 3 },
+    faqItem: { marginTop: 11 }
+  };
+  const toggle = (id) => setOpen(open === id ? null : id);
+  return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h2", { style: S.h2 }, "Первая рыбалка — по шагам"), /* @__PURE__ */ React.createElement("p", { style: __spreadProps(__spreadValues({}, S.muted), { margin: "6px 0 14px" }) }, "Всё, что нужно знать до выхода на воду. Тапай раздел."), GUIDE.map((g) => /* @__PURE__ */ React.createElement("div", { key: g.id, style: GS.sec }, /* @__PURE__ */ React.createElement("button", { style: GS.head, onClick: () => toggle(g.id) }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 18 } }, g.emoji), /* @__PURE__ */ React.createElement("span", { style: { flex: 1 } }, g.title), /* @__PURE__ */ React.createElement("span", { style: { color: MUT, fontSize: 17 } }, open === g.id ? "−" : "+")), open === g.id && /* @__PURE__ */ React.createElement("div", { style: GS.body }, g.steps.map((s, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: GS.step }, /* @__PURE__ */ React.createElement("span", { style: { color: GOLD, fontWeight: 900 } }, i + 1, "."), /* @__PURE__ */ React.createElement("span", null, s)))))), /* @__PURE__ */ React.createElement("div", { style: __spreadProps(__spreadValues({}, GS.sec), { marginTop: 16 }) }, /* @__PURE__ */ React.createElement("button", { style: GS.head, onClick: () => toggle("faq") }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 18 } }, "❓"), /* @__PURE__ */ React.createElement("span", { style: { flex: 1 } }, "FAQ новичка"), /* @__PURE__ */ React.createElement("span", { style: { color: MUT, fontSize: 17 } }, open === "faq" ? "−" : "+")), open === "faq" && /* @__PURE__ */ React.createElement("div", { style: GS.body }, FAQ.map(([q, a], i) => /* @__PURE__ */ React.createElement("div", { key: i, style: GS.faqItem }, /* @__PURE__ */ React.createElement("div", { style: GS.q }, q), /* @__PURE__ */ React.createElement("div", { style: GS.a }, a))))), /* @__PURE__ */ React.createElement("p", { style: S.disclaimer }, "Чусовая GO · сборка v4 · судак уже в Рыбадексе 🦷"));
 }
 const INK = "#eaf3f6", MUT = "#8aa3ad", GOLD = "#f5b942";
 const S = {
