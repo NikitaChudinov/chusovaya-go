@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0c2630">
+<title>Чусовая GO</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>html,body{margin:0;padding:0;background:#081a22;} body{padding-top:env(safe-area-inset-top);}</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+
+const { useState, useEffect, useRef, useCallback, useMemo } = React;
+// standalone: persistent storage in the phone browser
+const storeAPI = {
+  async get(k) { const v = localStorage.getItem(k); return v == null ? null : { value: v }; },
+  async set(k, v) { localStorage.setItem(k, v); return { key: k }; },
+};
+
+// ─────────────────────────────────────────────────────────────
+//  ЧУСОВАЯ GO v3 — геймификация РЕАЛЬНОЙ рыбалки
+//  Дневник улова + XP + ачивки + квесты по живой погоде
+//  Дача: 58.160620, 56.568030
+// ─────────────────────────────────────────────────────────────
+
+const DACHA = { lat: 58.16062, lng: 56.56803 };
+
+const RARITY = {
+  common:    { label: "Обычная",     color: "#7e95a3", mult: 1 },
+  uncommon:  { label: "Необычная",   color: "#3f9ae0", mult: 1.5 },
+  rare:      { label: "Редкая",      color: "#b06fe6", mult: 2.5 },
+  legendary: { label: "Легендарная", color: "#f5b942", mult: 10 },
+};
+
+const FISH = {
+  okun:    { name: "Окунь",   shape: "panfish",  color: "#5f9140", rarity: "common",    min: 0.1, max: 0.9 },
+  plotva:  { name: "Плотва",  shape: "panfish",  color: "#9aa7b0", rarity: "common",    min: 0.1, max: 0.6 },
+  golavl:  { name: "Голавль", shape: "deep",     color: "#6f8a4a", rarity: "uncommon",  min: 0.3, max: 1.8 },
+  yaz:     { name: "Язь",     shape: "deep",     color: "#c9a24b", rarity: "uncommon",  min: 0.4, max: 2.0 },
+  shchuka: { name: "Щука",    shape: "predator", color: "#566f3a", rarity: "uncommon",  min: 0.8, max: 5.0 },
+  leshch:  { name: "Лещ",     shape: "deep",     color: "#bda472", rarity: "uncommon",  min: 0.5, max: 2.8 },
+  zhereh:  { name: "Жерех",   shape: "predator", color: "#92a6b6", rarity: "rare",      min: 1.0, max: 3.8 },
+  nalim:   { name: "Налим",   shape: "predator", color: "#6f6040", rarity: "rare",      min: 0.5, max: 2.5 },
+  harius:  { name: "Хариус",  shape: "panfish",  color: "#7d8fc4", rarity: "rare",      min: 0.2, max: 1.3 },
+  taimen:  { name: "Таймень", shape: "predator", color: "#e0a93a", rarity: "legendary", min: 3.0, max: 12.0 },
+};
+const FISH_IDS = Object.keys(FISH);
+
+const SPOTS = [
+  { id: "gari",    name: "Затон у дачи",       sub: "База · мелководье",      ll: [58.16062, 56.56803], base: true },
+  { id: "perekat", name: "Перекат",            sub: "Быстрая вода выше",       ll: [58.1655, 56.5585] },
+  { id: "skaly",   name: "Скалы у Кр. Слудки", sub: "Глубина у скал",          ll: [58.1700, 56.5470] },
+  { id: "povorot", name: "Поворот ниже Гарей", sub: "Яма на излучине",         ll: [58.1545, 56.5790] },
+];
+
+const LEVELS = [
+  { xp: 0,     name: "Салага" },
+  { xp: 100,   name: "Новичок" },
+  { xp: 300,   name: "Любитель" },
+  { xp: 700,   name: "Рыбак" },
+  { xp: 1400,  name: "Бывалый" },
+  { xp: 2500,  name: "Знаток реки" },
+  { xp: 4200,  name: "Мастер спиннинга" },
+  { xp: 6500,  name: "Гроза хищника" },
+  { xp: 9500,  name: "Хозяин переката" },
+  { xp: 14000, name: "Легенда Чусовой" },
+];
+
+const ACH = {
+  first:    { emoji: "🩸", name: "Первая кровь",        desc: "Первый записанный улов" },
+  dawn:     { emoji: "🌅", name: "Ранняя зорька",       desc: "Улов до 6 утра" },
+  rain:     { emoji: "🌧️", name: "Мокрый, но довольный", desc: "Улов в дождь" },
+  defiant:  { emoji: "📈", name: "Против прогноза",     desc: "Улов при клёве ниже 35" },
+  night:    { emoji: "🌙", name: "Ночной дозор",        desc: "Улов с 23:00 до 4:00" },
+  harius:   { emoji: "⚡", name: "Гроза переката",      desc: "Поймать хариуса" },
+  pike:     { emoji: "🐊", name: "Щукарь",              desc: "Поймать щуку" },
+  taimen:   { emoji: "👑", name: "Легенда Чусовой",     desc: "Поймать тайменя" },
+  trophy:   { emoji: "🏆", name: "Трофейщик",           desc: "Первый трофей" },
+  five_day: { emoji: "🔥", name: "Раздача",             desc: "5 уловов за один день" },
+  scout:    { emoji: "🧭", name: "Разведчик",           desc: "Улов на всех 4 спотах" },
+  half_dex: { emoji: "📖", name: "Полдекса",            desc: "5 разных видов" },
+  release:  { emoji: "💚", name: "Живи, рыба",          desc: "Отпустить улов" },
+};
+
+// ── helpers ───────────────────────────────────────────────────
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const fmt = (w) => (w >= 1 ? (Math.round(w * 100) / 100) + " кг" : Math.round(w * 1000) + " г");
+const hPaToMm = (h) => h * 0.7500617;
+const compass = (d) => ["С","СВ","В","ЮВ","Ю","ЮЗ","З","СЗ"][Math.round(d / 45) % 8];
+const buzz = (p) => { try { navigator.vibrate?.(p); } catch (_) {} };
+const dayKey = (ts) => new Date(ts).toLocaleDateString("sv");
+const fmtClock = (d) => new Date(d).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+const fmtDate = (ts) => new Date(ts).toLocaleDateString("ru-RU", { day: "numeric", month: "short" });
+const WD = ["Вс","Пн","Вт","Ср","Чт","Пт","Сб"];
+const trophyThreshold = (f) => f.min + (f.max - f.min) * 0.82;
+const isRainCode = (c) => (c >= 51 && c <= 67) || (c >= 80 && c <= 82) || c >= 95;
+
+const WCODE = (c) => {
+  if (c === 0) return { t: "Ясно", e: "☀️" };
+  if (c <= 2) return { t: "Малооблачно", e: "🌤️" };
+  if (c === 3) return { t: "Пасмурно", e: "☁️" };
+  if (c <= 48) return { t: "Туман", e: "🌫️" };
+  if (c <= 67) return { t: "Дождь", e: "🌧️" };
+  if (c <= 77) return { t: "Снег", e: "🌨️" };
+  if (c <= 82) return { t: "Ливень", e: "🌧️" };
+  if (c <= 86) return { t: "Снегопад", e: "🌨️" };
+  return { t: "Гроза", e: "⛈️" };
+};
+
+// ── fish glyph ────────────────────────────────────────────────
+function FishGlyph({ shape = "panfish", color = "#888", size = 64, dim = false, trophy = false }) {
+  const cfg = { panfish: { rx: 26, ry: 18 }, deep: { rx: 23, ry: 23 }, predator: { rx: 35, ry: 11 } }[shape];
+  const cx = 54, cy = 30, { rx, ry } = cfg, lx = cx - rx;
+  const fill = dim ? "#3a4a52" : color;
+  const stroke = trophy ? "#f5b942" : "rgba(0,0,0,0.25)";
+  return (
+    <svg width={size} height={size * 0.6} viewBox="0 0 100 60" style={{ display: "block" }}>
+      <path d={`M${lx} ${cy} L${lx-18} ${cy-16} L${lx-18} ${cy+16} Z`} fill={fill} stroke={stroke} strokeWidth={trophy?2:0} strokeLinejoin="round" />
+      <path d={`M${cx-12} ${cy-ry+6} L${cx+4} ${cy-ry-9} L${cx+14} ${cy-ry+4} Z`} fill={fill} stroke={stroke} strokeWidth={trophy?2:0} strokeLinejoin="round" />
+      <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill={fill} stroke={stroke} strokeWidth={trophy?2.5:0} />
+      <circle cx={cx+rx-10} cy={cy-ry*0.25} r={3.4} fill="#fff" />
+      <circle cx={cx+rx-9} cy={cy-ry*0.25} r={1.7} fill="#15252b" />
+      {!dim && <ellipse cx={cx-2} cy={cy-ry*0.35} rx={rx*0.5} ry={ry*0.28} fill="rgba(255,255,255,0.18)" />}
+    </svg>
+  );
+}
+
+// ── bite engine (works for "now" and any hour) ────────────────
+function biteIndex(c) {
+  // c: {tempC, pHpa, pTrendHpa, windMs, windDir, clouds, isDay, isDawnDusk, brightMidday, month}
+  let idx = 50; const why = [];
+  if (c.isDawnDusk) { idx += 20; why.push({ t: "Зорька — пик активности", good: true }); }
+  else if (c.brightMidday) { idx -= 10; why.push({ t: "Яркое солнце в полдень — клёв вялый", good: false }); }
+  else if (!c.isDay) { idx -= 4; why.push({ t: "Ночь — большинство рыбы пассивно", good: false }); }
+
+  if (c.pTrendHpa <= -1 && c.pTrendHpa >= -4) { idx += 12; why.push({ t: "Давление плавно падает — рыба жирует", good: true }); }
+  else if (c.pTrendHpa < -4) { idx += 4; why.push({ t: "Давление резко падает — идёт фронт", good: true }); }
+  else if (c.pTrendHpa > 3) { idx -= 14; why.push({ t: "Давление резко растёт — рыба у дна", good: false }); }
+  else if (c.pTrendHpa > 1) { idx -= 8; why.push({ t: "Давление растёт — клёв слабее", good: false }); }
+  else { idx += 6; why.push({ t: "Давление стабильное", good: true }); }
+  if (c.pHpa > 1025) idx -= 6; else if (c.pHpa < 995) idx -= 4;
+
+  if (c.clouds >= 60) { idx += 8; why.push({ t: "Пасмурно — хищник гуляет", good: true }); }
+  else if (c.clouds >= 30) idx += 4; else if (!c.brightMidday) idx += 2;
+
+  if (c.windMs >= 1 && c.windMs <= 5) { idx += 8; why.push({ t: "Лёгкая рябь — то что надо", good: true }); }
+  else if (c.windMs < 1) { idx -= 4; why.push({ t: "Штиль — рыба осторожна", good: false }); }
+  else if (c.windMs > 8) { idx -= 12; why.push({ t: "Сильный ветер", good: false }); }
+  if (c.windDir != null) { if (c.windDir >= 45 && c.windDir <= 135) idx -= 5; else if (c.windDir >= 225 && c.windDir <= 315) idx += 5; }
+
+  if (c.tempC >= 8 && c.tempC <= 20) idx += 6;
+  else if (c.tempC > 27) { idx -= 8; why.push({ t: "Жара — рыба на глубине", good: false }); }
+  else if (c.tempC < 3) idx -= 4;
+
+  return { idx: Math.round(clamp(idx, 5, 98)), why };
+}
+
+function speciesMod(id, c) {
+  let m = 0;
+  switch (id) {
+    case "okun":   m += c.clouds > 50 ? 4 : 0; m += c.isDawnDusk ? 3 : 0; m -= c.brightMidday ? 3 : 0; break;
+    case "plotva": m += 2; m -= c.windMs > 8 ? 2 : 0; break;
+    case "golavl": m += c.tempC > 15 && c.isDay ? 6 : 0; m += c.brightMidday ? 4 : 0; m -= c.tempC < 8 ? 8 : 0; m -= !c.isDay ? 4 : 0; break;
+    case "yaz":    m += c.tempC > 15 ? 5 : 0; m -= c.tempC < 8 ? 6 : 0; m += c.isDawnDusk ? 3 : 0; break;
+    case "shchuka":m += c.clouds > 60 ? 8 : 0; m += c.pTrendHpa < -1 ? 8 : 0; m += c.isDawnDusk ? 5 : 0; m -= c.brightMidday && c.pHpa > 1022 ? 10 : 0; m -= c.windMs > 8 ? 4 : 0; break;
+    case "leshch": m += c.isDawnDusk ? 6 : 0; m += c.tempC >= 12 && c.tempC <= 24 ? 4 : 0; m -= c.windMs > 8 ? 5 : 0; m -= c.brightMidday ? 4 : 0; break;
+    case "zhereh": m += c.tempC > 17 && c.isDay ? 7 : 0; m += c.windMs >= 2 && c.windMs <= 6 ? 5 : 0; m -= c.tempC < 10 ? 8 : 0; m -= !c.isDay ? 5 : 0; break;
+    case "nalim":  m += !c.isDay ? 14 : 0; m += c.tempC < 6 ? 12 : 0; m += c.pTrendHpa < -2 ? 8 : 0; m += [9,10,11,0,1,2].includes(c.month) ? 6 : 0; m -= c.tempC > 22 ? 18 : 0; m -= c.brightMidday ? 10 : 0; break;
+    case "harius": m += c.tempC > 4 && c.tempC < 18 ? 8 : 0; m += c.clouds >= 30 && c.clouds <= 80 ? 6 : 0; m -= c.tempC > 24 ? 10 : 0; m -= c.brightMidday ? 4 : 0; break;
+    case "taimen": m += c.isDawnDusk ? 6 : 0; m += c.clouds > 50 ? 6 : 0; m += c.tempC < 16 ? 5 : 0; break;
+    default: break;
+  }
+  return m;
+}
+
+function hourlyIdx(w, date) {
+  const t0 = new Date(w.hourly.time[0]).getTime();
+  return clamp(Math.round((date.getTime() - t0) / 3600000), 0, w.hourly.time.length - 1);
+}
+function condAt(w, date, flags = {}) {
+  const i = hourlyIdx(w, date);
+  const h = w.hourly;
+  return {
+    tempC: h.temperature_2m[i], pHpa: h.surface_pressure[i],
+    pTrendHpa: i >= 3 ? h.surface_pressure[i] - h.surface_pressure[i - 3] : 0,
+    windMs: h.wind_speed_10m[i], windDir: null, clouds: h.cloud_cover[i],
+    code: h.weather_code[i], month: date.getMonth(),
+    isDay: flags.isDay ?? true, isDawnDusk: flags.isDawnDusk ?? false,
+    brightMidday: flags.brightMidday ?? false,
+  };
+}
+
+function computeForecast(w) {
+  const now = new Date();
+  const cur = w.current;
+  const sunrise = new Date(w.daily.sunrise[0]);
+  const sunset = new Date(w.daily.sunset[0]);
+  const isDay = cur.is_day === 1;
+  const isDawn = now >= new Date(+sunrise - 30 * 60000) && now <= new Date(+sunrise + 120 * 60000);
+  const isDusk = now >= new Date(+sunset - 120 * 60000) && now <= new Date(+sunset + 45 * 60000);
+  const hour = now.getHours();
+  const brightMidday = isDay && hour >= 11 && hour <= 16 && cur.cloud_cover < 40;
+
+  let pTrendHpa = 0;
+  try { const i = hourlyIdx(w, now); if (i >= 3) pTrendHpa = w.hourly.surface_pressure[i] - w.hourly.surface_pressure[i - 3]; } catch (_) {}
+
+  const cond = {
+    tempC: cur.temperature_2m, pHpa: cur.surface_pressure, pTrendHpa,
+    windMs: cur.wind_speed_10m, windDir: cur.wind_direction_10m,
+    clouds: cur.cloud_cover, isDay, isDawnDusk: isDawn || isDusk, brightMidday, month: now.getMonth(),
+    code: cur.weather_code,
+  };
+  const { idx, why } = biteIndex(cond);
+  const species = {};
+  for (const id of FISH_IDS) species[id] = clamp(idx + speciesMod(id, cond), 5, 99);
+
+  let verdict, vColor;
+  if (idx >= 70) { verdict = "Отличный клёв"; vColor = "#52d27a"; }
+  else if (idx >= 50) { verdict = "Хороший клёв"; vColor = "#9ed24a"; }
+  else if (idx >= 35) { verdict = "Средний клёв"; vColor = "#f5b942"; }
+  else { verdict = "Слабый клёв"; vColor = "#e06b4a"; }
+
+  // 3-day golden windows
+  const windows = [];
+  const nDays = Math.min(3, w.daily.sunrise.length);
+  for (let d = 0; d < nDays; d++) {
+    const sr = new Date(w.daily.sunrise[d]);
+    const ss = new Date(w.daily.sunset[d]);
+    const mkWin = (center, label, from, to) => {
+      if (center < new Date(now.getTime() - 60 * 60000)) return null; // прошло
+      const c = condAt(w, center, { isDay: true, isDawnDusk: true });
+      const { idx } = biteIndex(c);
+      return { day: d, label, range: `${fmtClock(from)}–${fmtClock(to)}`, idx, code: c.code, ts: +center };
+    };
+    const m = mkWin(new Date(+sr + 60 * 60000), "утро", new Date(+sr - 30 * 60000), new Date(+sr + 150 * 60000));
+    const e = mkWin(new Date(+ss - 60 * 60000), "вечер", new Date(+ss - 120 * 60000), new Date(+ss + 30 * 60000));
+    if (m) windows.push(m); if (e) windows.push(e);
+  }
+  const best = windows.length ? windows.reduce((a, b) => (b.idx > a.idx ? b : a)) : null;
+
+  return {
+    index: idx, verdict, vColor, why: why.slice(0, 4), species, windows, best,
+    cond: { ...cond, pMm: hPaToMm(cond.pHpa), pTrendMm: hPaToMm(pTrendHpa), sunrise, sunset },
+  };
+}
+
+// quest of the day (deterministic from forecast)
+function buildQuest(forecast) {
+  if (!forecast) return null;
+  if (forecast.index < 40) {
+    return { type: "any", emoji: "💪", title: "Вопреки стихии", desc: "Клёв слабый — любой улов сегодня вдвое ценнее", mult: 2 };
+  }
+  const cand = FISH_IDS
+    .filter((id) => FISH[id].rarity !== "common" && FISH[id].rarity !== "legendary")
+    .sort((a, b) => forecast.species[b] - forecast.species[a]);
+  const top = cand.find((id) => forecast.species[id] >= 55);
+  if (top) {
+    const xp = Math.round(80 * RARITY[FISH[top].rarity].mult);
+    return { type: "fish", fid: top, emoji: "🎯", title: `Цель дня: ${FISH[top].name.toLowerCase()}`, desc: `Активность ${forecast.species[top]}% — самое время`, xp };
+  }
+  const c = [...FISH_IDS].sort((a, b) => forecast.species[b] - forecast.species[a])[0];
+  return { type: "fish", fid: c, emoji: "🎯", title: `Цель дня: ${FISH[c].name.toLowerCase()}`, desc: "Самый активный вид сегодня", xp: 60 };
+}
+
+function levelInfo(xp) {
+  let i = 0;
+  while (i < LEVELS.length - 1 && xp >= LEVELS[i + 1].xp) i++;
+  const cur = LEVELS[i], next = LEVELS[i + 1] || null;
+  return { n: i + 1, name: cur.name, next, prog: next ? (xp - cur.xp) / (next.xp - cur.xp) : 1, toNext: next ? next.xp - xp : 0 };
+}
+
+// ── persistence ───────────────────────────────────────────────
+const KEY = "chusovaya-go:save:v3";
+
+// ═══════════════════════════════════════════════════════════════
+function ChusovayaGo() {
+  const [tab, setTab] = useState("home");
+  const [catches, setCatches] = useState([]);
+  const [xp, setXp] = useState(0);
+  const [ach, setAch] = useState({});
+  const [spotPos, setSpotPos] = useState({});
+  const [loaded, setLoaded] = useState(false);
+  const [logOpen, setLogOpen] = useState(false);
+  const [mapOpen, setMapOpen] = useState(false);
+  const [celebration, setCelebration] = useState(null);
+
+  const [weather, setWeather] = useState(null);
+  const [wxState, setWxState] = useState("loading");
+  const forecast = useMemo(() => (weather ? computeForecast(weather) : null), [weather]);
+  const quest = useMemo(() => buildQuest(forecast), [forecast]);
+
+  // load / save
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await storeAPI.get(KEY);
+        if (r?.value) {
+          const s = JSON.parse(r.value);
+          if (s.catches) setCatches(s.catches);
+          if (s.xp) setXp(s.xp);
+          if (s.ach) setAch(s.ach);
+          if (s.spotPos) setSpotPos(s.spotPos);
+        }
+      } catch (_) {} finally { setLoaded(true); }
+    })();
+  }, []);
+  useEffect(() => {
+    if (!loaded) return;
+    (async () => { try { await storeAPI.set(KEY, JSON.stringify({ catches, xp, ach, spotPos })); } catch (_) {} })();
+  }, [catches, xp, ach, spotPos, loaded]);
+
+  const loadWeather = useCallback(async () => {
+    setWxState("loading");
+    try {
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${DACHA.lat}&longitude=${DACHA.lng}` +
+        `&current=temperature_2m,surface_pressure,wind_speed_10m,wind_direction_10m,cloud_cover,weather_code,is_day` +
+        `&hourly=temperature_2m,surface_pressure,cloud_cover,wind_speed_10m,weather_code` +
+        `&daily=sunrise,sunset&timezone=auto&wind_speed_unit=ms&forecast_days=3`;
+      const r = await fetch(url);
+      if (!r.ok) throw new Error("net");
+      setWeather(await r.json()); setWxState("ok");
+    } catch (_) { setWxState("error"); }
+  }, []);
+  useEffect(() => { loadWeather(); }, [loadWeather]);
+
+  // derived
+  const dex = useMemo(() => {
+    const d = Object.fromEntries(FISH_IDS.map((id) => [id, { count: 0, best: 0, trophy: false }]));
+    for (const c of catches) {
+      const e = d[c.fid]; if (!e) continue;
+      e.count++; e.best = Math.max(e.best, c.w); e.trophy = e.trophy || c.flags?.trophy;
+    }
+    return d;
+  }, [catches]);
+  const lvl = levelInfo(xp);
+  const questDone = useMemo(() => {
+    if (!quest) return false;
+    const today = dayKey(Date.now());
+    return catches.some((c) => dayKey(c.ts) === today && (quest.type === "any" || c.fid === quest.fid));
+  }, [quest, catches]);
+
+  // ── log a real catch ────────────────────────────────────────
+  const logCatch = (payload) => {
+    const { fid, w, spotId, ts, wx, released } = payload;
+    const f = FISH[fid];
+    const now = new Date(ts);
+    const lines = [];
+    const flags = {};
+
+    lines.push({ t: `${f.name} · ${RARITY[f.rarity].label.toLowerCase()}`, v: Math.round(20 * RARITY[f.rarity].mult) });
+
+    if (dex[fid].count === 0) { flags.newSpecies = true; lines.push({ t: "Новый вид в Рыбадексе!", v: 100 }); }
+    if (w >= trophyThreshold(f)) { flags.trophy = true; lines.push({ t: "ТРОФЕЙ", v: 150 }); }
+
+    let dawnDusk = false;
+    if (forecast) {
+      const { sunrise, sunset } = forecast.cond;
+      dawnDusk = (now >= new Date(+sunrise - 30 * 60000) && now <= new Date(+sunrise + 150 * 60000)) ||
+                 (now >= new Date(+sunset - 120 * 60000) && now <= new Date(+sunset + 45 * 60000));
+    } else { const h = now.getHours(); dawnDusk = (h >= 4 && h <= 7) || (h >= 19 && h <= 22); }
+    if (dawnDusk) { flags.dawn = true; lines.push({ t: "Золотой час (зорька)", v: 15 }); }
+    if (released) { flags.released = true; lines.push({ t: "Отпущена — карма", v: 10 }); }
+
+    // bite index at catch time
+    let biteIdx = null;
+    if (weather) {
+      try {
+        const c = condAt(weather, now, { isDay: now.getHours() >= 5 && now.getHours() <= 21, isDawnDusk: dawnDusk });
+        biteIdx = biteIndex(c).idx;
+      } catch (_) {}
+    }
+    let subtotal = lines.reduce((s, l) => s + l.v, 0);
+    if (biteIdx !== null && biteIdx < 35) {
+      flags.defiant = true;
+      const bonus = Math.round(subtotal * 0.5);
+      lines.push({ t: "Вопреки прогнозу +50%", v: bonus });
+      subtotal += bonus;
+    }
+    // quest
+    let questHit = false;
+    if (quest && !questDone) {
+      if (quest.type === "fish" && quest.fid === fid) { questHit = true; lines.push({ t: "Квест дня выполнен", v: quest.xp }); subtotal += quest.xp; }
+      if (quest.type === "any") { questHit = true; const b = subtotal; lines.push({ t: "Квест: улов ×2", v: b }); subtotal += b; }
+    }
+
+    const entry = {
+      id: Date.now() + "_" + Math.random().toString(36).slice(2, 7),
+      fid, w, spotId, ts, released: !!released, wx, biteIdx, xp: subtotal, flags,
+    };
+    const nextCatches = [entry, ...catches];
+
+    // achievements
+    const unlocked = [];
+    const tryUnlock = (id, cond) => { if (cond && !ach[id]) unlocked.push(id); };
+    tryUnlock("first", true);
+    tryUnlock("dawn", now.getHours() < 6);
+    tryUnlock("night", now.getHours() >= 23 || now.getHours() < 4);
+    tryUnlock("rain", wx && isRainCode(wx.code));
+    tryUnlock("defiant", flags.defiant);
+    tryUnlock("harius", fid === "harius");
+    tryUnlock("pike", fid === "shchuka");
+    tryUnlock("taimen", fid === "taimen");
+    tryUnlock("trophy", flags.trophy);
+    tryUnlock("release", !!released);
+    tryUnlock("five_day", nextCatches.filter((c) => dayKey(c.ts) === dayKey(ts)).length >= 5);
+    tryUnlock("scout", new Set(nextCatches.map((c) => c.spotId)).size >= SPOTS.length);
+    tryUnlock("half_dex", new Set(nextCatches.map((c) => c.fid)).size >= 5);
+    if (unlocked.length) {
+      const stamp = Date.now();
+      setAch((a) => ({ ...a, ...Object.fromEntries(unlocked.map((id) => [id, stamp])) }));
+      lines.push(...unlocked.map((id) => ({ t: `${ACH[id].emoji} ${ACH[id].name}`, v: 25 })));
+      subtotal += unlocked.length * 25;
+      entry.xp = subtotal;
+    }
+
+    const before = levelInfo(xp), after = levelInfo(xp + subtotal);
+    setCatches(nextCatches);
+    setXp((x) => x + subtotal);
+    setLogOpen(false);
+    setCelebration({ entry, lines, total: subtotal, unlocked, levelUp: after.n > before.n ? after : null });
+    buzz([0, 40, 30, 40, 30, 80]);
+  };
+
+  const deleteCatch = (id) => {
+    const c = catches.find((x) => x.id === id);
+    if (!c) return;
+    if (!window.confirm(`Удалить запись: ${FISH[c.fid].name} ${fmt(c.w)}? XP тоже спишется.`)) return;
+    setCatches((arr) => arr.filter((x) => x.id !== id));
+    setXp((x) => Math.max(0, x - (c.xp || 0)));
+  };
+
+  const stats = useMemo(() => {
+    const trips = new Set(catches.map((c) => dayKey(c.ts))).size;
+    const totalW = catches.reduce((s, c) => s + c.w, 0);
+    const best = catches.reduce((b, c) => (!b || c.w > b.w ? c : b), null);
+    return { trips, totalW, best, count: catches.length, species: FISH_IDS.filter((id) => dex[id].count > 0).length };
+  }, [catches, dex]);
+
+  return (
+    <div style={S.app}>
+      <style>{CSS}</style>
+
+      <header style={S.hud}>
+        <div style={S.logo}><span style={S.logoIcon}>🎣</span><span>ЧУСОВАЯ <span style={{ color: "#f5b942" }}>GO</span></span></div>
+        <div style={S.lvlChip}>Ур. {lvl.n} · {lvl.name}</div>
+      </header>
+      <div style={S.xpBarWrap} title={lvl.next ? `${lvl.toNext} XP до «${lvl.next.name}»` : "Максимум"}>
+        <div style={{ ...S.xpBarFill, width: `${Math.round(lvl.prog * 100)}%` }} />
+        <span style={S.xpBarText}>{xp} XP{lvl.next ? ` · до след. ${lvl.toNext}` : " · MAX"}</span>
+      </div>
+
+      <main style={S.main}>
+        {tab === "home" && (
+          <HomeView forecast={forecast} wxState={wxState} onRetryWx={loadWeather}
+            quest={quest} questDone={questDone} catches={catches}
+            onLog={() => setLogOpen(true)} onMap={() => setMapOpen(true)} />
+        )}
+        {tab === "wx" && <ForecastView forecast={forecast} wxState={wxState} onRetry={loadWeather} />}
+        {tab === "dex" && <DexView dex={dex} ach={ach} />}
+        {tab === "journal" && <JournalView catches={catches} stats={stats} onDelete={deleteCatch} />}
+      </main>
+
+      <nav style={S.nav}>
+        {[["home","🏕️","Главная"],["wx","🌤️","Прогноз"],["dex","📖","Рыбадекс"],["journal","📓","Журнал"]].map(([k,i,l]) => (
+          <button key={k} onClick={() => setTab(k)} style={{ ...S.navBtn, ...(tab === k ? S.navOn : {}) }}>
+            <span style={S.navIcon}>{i}</span>{l}
+          </button>
+        ))}
+      </nav>
+
+      {logOpen && <LogWizard weather={weather} onCancel={() => setLogOpen(false)} onSave={logCatch} lastSpot={catches[0]?.spotId} />}
+      {mapOpen && <MapOverlay spotPos={spotPos} onMove={(id, lat, lng) => setSpotPos((p) => ({ ...p, [id]: [lat, lng] }))} onClose={() => setMapOpen(false)} />}
+      {celebration && <Celebration data={celebration} onClose={() => setCelebration(null)} />}
+    </div>
+  );
+}
+
+// ── HOME ──────────────────────────────────────────────────────
+function HomeView({ forecast, wxState, onRetryWx, quest, questDone, catches, onLog, onMap }) {
+  const recent = catches.slice(0, 3);
+  return (
+    <div>
+      {/* bite now */}
+      {forecast ? (
+        <div style={{ ...S.biteCard, borderColor: forecast.vColor + "55" }}>
+          <div style={S.biteLeft}>
+            <div style={S.cardKicker}>Клёв сейчас</div>
+            <div style={{ ...S.biteVerdict, color: forecast.vColor }}>{forecast.verdict}</div>
+            <div style={S.biteMeta}>
+              {WCODE(forecast.cond.code).e} {Math.round(forecast.cond.tempC)}° · {Math.round(forecast.cond.pMm)} мм {forecast.cond.pTrendMm < -0.4 ? "↓" : forecast.cond.pTrendMm > 0.4 ? "↑" : "→"} · 💨 {forecast.cond.windMs.toFixed(1)} м/с
+            </div>
+          </div>
+          <div style={S.gaugeSm}>
+            <svg width="64" height="64" viewBox="0 0 64 64">
+              <circle cx="32" cy="32" r="26" fill="none" stroke="#1d3a44" strokeWidth="7" />
+              <circle cx="32" cy="32" r="26" fill="none" stroke={forecast.vColor} strokeWidth="7" strokeLinecap="round"
+                strokeDasharray={`${(forecast.index / 100) * 163.4} 163.4`} transform="rotate(-90 32 32)" />
+            </svg>
+            <span style={S.gaugeSmNum}>{forecast.index}</span>
+          </div>
+        </div>
+      ) : (
+        <div style={S.biteCard}>
+          <div style={S.biteLeft}>
+            <div style={S.cardKicker}>Клёв сейчас</div>
+            <div style={S.muted}>{wxState === "loading" ? "Тяну погоду по даче…" : "Погода недоступна"}</div>
+          </div>
+          {wxState === "error" && <button onClick={onRetryWx} style={S.miniBtn}>↻</button>}
+        </div>
+      )}
+
+      {/* quest */}
+      {quest && (
+        <div style={{ ...S.questCard, opacity: questDone ? 0.75 : 1 }}>
+          <div style={S.questEmoji}>{questDone ? "✅" : quest.emoji}</div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={S.questTitle}>{quest.title}</div>
+            <div style={S.questDesc}>{questDone ? "Выполнено! Награда получена." : quest.desc}</div>
+          </div>
+          <div style={S.questXp}>{quest.type === "any" ? "×2" : `+${quest.xp}`}</div>
+        </div>
+      )}
+
+      {/* CTA */}
+      <button onClick={onLog} style={S.cta} className="cast">🎣 Записать улов</button>
+      <p style={S.ctaHint}>Поймал — три тапа, и рыба в журнале. Погода прицепится сама.</p>
+
+      {/* best windows */}
+      {forecast?.best && (
+        <div style={S.winCard}>
+          <div style={S.cardKicker}>⏰ Лучшее окно на 3 дня</div>
+          <div style={S.winBest}>
+            {forecast.best.day === 0 ? "Сегодня" : forecast.best.day === 1 ? "Завтра" : WD[new Date(forecast.best.ts).getDay()]}, {forecast.best.label} · {forecast.best.range}
+            <span style={{ color: "#52d27a", marginLeft: 8 }}>клёв {forecast.best.idx}</span>
+          </div>
+          <div style={S.winList}>
+            {forecast.windows.filter((w) => w !== forecast.best).slice(0, 4).map((w, i) => (
+              <span key={i} style={S.winChip}>
+                {w.day === 0 ? "Сег" : w.day === 1 ? "Зав" : WD[new Date(w.ts).getDay()]} {w.label} · {w.idx}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* recent */}
+      {recent.length > 0 && (
+        <div style={{ marginTop: 18 }}>
+          <div style={S.cardKicker}>Последние уловы</div>
+          {recent.map((c) => <CatchRow key={c.id} c={c} compact />)}
+        </div>
+      )}
+
+      <button onClick={onMap} style={S.mapLink}>🗺️ Мои споты на карте</button>
+    </div>
+  );
+}
+
+// ── LOG WIZARD ────────────────────────────────────────────────
+function LogWizard({ weather, onCancel, onSave, lastSpot }) {
+  const [step, setStep] = useState("species"); // species → weight → spot → confirm
+  const [fid, setFid] = useState(null);
+  const [w, setW] = useState(0);
+  const [spotId, setSpotId] = useState(lastSpot || "gari");
+  const [whenH, setWhenH] = useState(-1); // -1 = сейчас, else hour of today
+  const [released, setReleased] = useState(false);
+
+  const f = fid ? FISH[fid] : null;
+  const stepSize = w < 1 ? 0.05 : w < 3 ? 0.1 : 0.25;
+  const nowH = new Date().getHours();
+  const whenOpts = [{ h: -1, l: "Сейчас" }, { h: 6, l: "Утром ~6:00" }, { h: 13, l: "Днём ~13:00" }, { h: 20, l: "Вечером ~20:00" }]
+    .filter((o) => o.h === -1 || o.h <= nowH);
+
+  const pickSpecies = (id) => {
+    setFid(id);
+    const ff = FISH[id];
+    const mid = ff.min + (ff.max - ff.min) * 0.35;
+    setW(Math.round(mid * 20) / 20);
+    setStep("weight");
+  };
+  const chips = f ? [f.min, f.min + (f.max - f.min) * 0.33, f.min + (f.max - f.min) * 0.66, f.max].map((x) => Math.round(x * 20) / 20) : [];
+
+  const save = () => {
+    let ts = Date.now(), wx = null;
+    if (whenH >= 0) { const d = new Date(); d.setHours(whenH, 0, 0, 0); ts = d.getTime(); }
+    if (weather) {
+      if (whenH < 0) {
+        const c = weather.current;
+        wx = { t: c.temperature_2m, code: c.weather_code, wind: c.wind_speed_10m, cloud: c.cloud_cover, pMm: Math.round(hPaToMm(c.surface_pressure)) };
+      } else {
+        try {
+          const i = hourlyIdx(weather, new Date(ts));
+          const h = weather.hourly;
+          wx = { t: h.temperature_2m[i], code: h.weather_code[i], wind: h.wind_speed_10m[i], cloud: h.cloud_cover[i], pMm: Math.round(hPaToMm(h.surface_pressure[i])) };
+        } catch (_) {}
+      }
+    }
+    onSave({ fid, w, spotId, ts, wx, released });
+  };
+
+  return (
+    <div style={S.overlay}>
+      <div style={S.wizHead}>
+        <button onClick={step === "species" ? onCancel : () => setStep(step === "weight" ? "species" : step === "spot" ? "weight" : "spot")} style={S.back}>‹ {step === "species" ? "Отмена" : "Назад"}</button>
+        <span style={S.wizStep}>{["species","weight","spot","confirm"].indexOf(step) + 1}/4</span>
+      </div>
+
+      {step === "species" && (
+        <div style={S.wizBody}>
+          <h2 style={S.wizH}>Кого поймал?</h2>
+          <div style={S.spGrid}>
+            {FISH_IDS.map((id) => {
+              const ff = FISH[id], r = RARITY[ff.rarity];
+              return (
+                <button key={id} onClick={() => pickSpecies(id)} style={S.spCell} className="tapcell">
+                  <FishGlyph shape={ff.shape} color={ff.color} size={54} />
+                  <span style={S.spName}>{ff.name}</span>
+                  <span style={{ ...S.spDot, background: r.color }} />
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {step === "weight" && f && (
+        <div style={S.wizBody}>
+          <h2 style={S.wizH}>{f.name} — вес?</h2>
+          <div style={S.wCenter}>
+            <FishGlyph shape={f.shape} color={f.color} size={90} trophy={w >= trophyThreshold(f)} />
+            <div style={S.wValue}>{fmt(w)}</div>
+            {w >= trophyThreshold(f) && <div style={S.wTrophy}>🏆 Трофейный размер!</div>}
+            <div style={S.wBtns}>
+              <button style={S.wBtn} className="cast" onClick={() => setW((x) => Math.max(0.05, Math.round((x - stepSize) * 100) / 100))}>−</button>
+              <button style={S.wBtn} className="cast" onClick={() => setW((x) => Math.round((x + stepSize) * 100) / 100)}>+</button>
+            </div>
+            <div style={S.wChips}>
+              {chips.map((c, i) => (
+                <button key={i} onClick={() => setW(c)} style={{ ...S.wChip, ...(Math.abs(c - w) < 0.001 ? S.wChipOn : {}) }}>{fmt(c)}</button>
+              ))}
+            </div>
+          </div>
+          <button onClick={() => setStep("spot")} style={S.cta} className="cast">Дальше →</button>
+        </div>
+      )}
+
+      {step === "spot" && (
+        <div style={S.wizBody}>
+          <h2 style={S.wizH}>Где?</h2>
+          <div style={S.spotList}>
+            {SPOTS.map((s) => (
+              <button key={s.id} onClick={() => { setSpotId(s.id); setStep("confirm"); }}
+                style={{ ...S.spotBtn, ...(spotId === s.id ? S.spotBtnOn : {}) }} className="tapcell">
+                <span style={{ fontSize: 20 }}>{s.base ? "🏠" : "🎣"}</span>
+                <span><b>{s.name}</b><br /><small style={{ color: "#8aa3ad" }}>{s.sub}</small></span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {step === "confirm" && f && (
+        <div style={S.wizBody}>
+          <h2 style={S.wizH}>Проверь и записывай</h2>
+          <div style={S.confCard}>
+            <FishGlyph shape={f.shape} color={f.color} size={70} trophy={w >= trophyThreshold(f)} />
+            <div style={{ marginTop: 8, fontWeight: 900, fontSize: 19 }}>{f.name} · {fmt(w)}</div>
+            <div style={{ color: "#8aa3ad", fontSize: 13.5, marginTop: 3 }}>{SPOTS.find((s) => s.id === spotId)?.name}</div>
+          </div>
+          <div style={S.confBlock}>
+            <div style={S.confLabel}>Когда поймал</div>
+            <div style={S.wChips}>
+              {whenOpts.map((o) => (
+                <button key={o.h} onClick={() => setWhenH(o.h)} style={{ ...S.wChip, ...(whenH === o.h ? S.wChipOn : {}) }}>{o.l}</button>
+              ))}
+            </div>
+          </div>
+          <button onClick={() => setReleased((r) => !r)} style={{ ...S.relToggle, ...(released ? S.relOn : {}) }}>
+            {released ? "💚 Отпустил обратно" : "🧺 Забрал в садок"} <small style={{ opacity: 0.7 }}>(тапни чтобы сменить)</small>
+          </button>
+          <button onClick={save} style={S.cta} className="cast">🎣 Записать улов</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── CELEBRATION ───────────────────────────────────────────────
+function Celebration({ data, onClose }) {
+  const { entry, lines, total, unlocked, levelUp } = data;
+  const f = FISH[entry.fid];
+  return (
+    <div style={S.overlay} onClick={onClose}>
+      <div style={S.celebWrap} onClick={(e) => e.stopPropagation()}>
+        <Sparkles gold={entry.flags?.trophy || f.rarity === "legendary"} />
+        <div className="catchPop" style={{ position: "relative", zIndex: 2 }}>
+          <FishGlyph shape={f.shape} color={f.color} size={110} trophy={entry.flags?.trophy} />
+        </div>
+        <h2 style={{ ...S.celebTitle, color: entry.flags?.trophy ? "#f5b942" : "#eaf3f6" }}>
+          {entry.flags?.trophy ? "ТРОФЕЙ!" : "Есть!"}
+        </h2>
+        <div style={S.celebXp}>+{total} XP</div>
+        {levelUp && <div style={S.lvlUp}>⬆️ Новый уровень: {levelUp.n} · {levelUp.name}</div>}
+        <div style={S.celebLines}>
+          {lines.map((l, i) => (
+            <div key={i} style={S.celebLine}><span>{l.t}</span><span style={{ color: "#f5b942", fontWeight: 900 }}>+{l.v}</span></div>
+          ))}
+        </div>
+        {unlocked.length > 0 && (
+          <div style={S.celebAch}>
+            {unlocked.map((id) => <div key={id} style={S.celebAchItem}>{ACH[id].emoji} {ACH[id].name}</div>)}
+          </div>
+        )}
+        <button onClick={onClose} style={S.cta} className="cast">В журнал 📓</button>
+      </div>
+    </div>
+  );
+}
+function Sparkles({ gold }) {
+  return <div style={S.sparkWrap}>{Array.from({ length: 16 }).map((_, i) => <span key={i} className="spark" style={{ left: `${8 + Math.random() * 84}%`, background: gold ? "#f5b942" : ["#52d27a","#3f9ae0","#b06fe6"][i % 3], animationDelay: `${Math.random() * 0.5}s`, width: 6 + Math.random() * 7, height: 6 + Math.random() * 7 }} />)}</div>;
+}
+
+// ── FORECAST TAB ──────────────────────────────────────────────
+function ForecastView({ forecast, wxState, onRetry }) {
+  if (wxState === "loading" && !forecast) return <div style={S.center}><div className="bob" style={{ fontSize: 40 }}>🌤️</div><p style={S.muted}>Тяну погоду по координатам дачи…</p></div>;
+  if (!forecast) return <div style={S.center}><div style={{ fontSize: 40 }}>📡</div><p style={S.muted}>Не удалось загрузить погоду.</p><button onClick={onRetry} style={S.cta} className="cast">Повторить</button></div>;
+  const f = forecast, c = f.cond, wc = WCODE(c.code);
+  const sorted = [...FISH_IDS].sort((a, b) => f.species[b] - f.species[a]);
+  const trendTxt = c.pTrendMm > 0.4 ? "↑ растёт" : c.pTrendMm < -0.4 ? "↓ падает" : "→ ровно";
+  return (
+    <div>
+      <div style={{ ...S.verdictCard, borderColor: f.vColor + "66" }}>
+        <div style={S.verdictTop}>
+          <div>
+            <div style={S.cardKicker}>Клёв сейчас</div>
+            <div style={{ ...S.verdictName, color: f.vColor }}>{f.verdict}</div>
+          </div>
+          <div style={S.gauge}>
+            <svg width="84" height="84" viewBox="0 0 84 84">
+              <circle cx="42" cy="42" r="34" fill="none" stroke="#1d3a44" strokeWidth="9" />
+              <circle cx="42" cy="42" r="34" fill="none" stroke={f.vColor} strokeWidth="9" strokeLinecap="round" strokeDasharray={`${(f.index / 100) * 213.6} 213.6`} transform="rotate(-90 42 42)" />
+            </svg>
+            <span style={S.gaugeNum}>{f.index}</span>
+          </div>
+        </div>
+        <button onClick={onRetry} style={S.refresh}>↻ обновить</button>
+      </div>
+
+      <div style={S.condGrid}>
+        <Cond icon={wc.e} label={wc.t} val={`${Math.round(c.tempC)}°C`} />
+        <Cond icon="🧭" label={`Давление ${trendTxt}`} val={`${Math.round(c.pMm)} мм`} />
+        <Cond icon="💨" label={`Ветер ${compass(c.windDir ?? 0)}`} val={`${c.windMs.toFixed(1)} м/с`} />
+        <Cond icon="☁️" label="Облачность" val={`${c.clouds}%`} />
+        <Cond icon="🌅" label="Рассвет" val={fmtClock(c.sunrise)} />
+        <Cond icon="🌇" label="Закат" val={fmtClock(c.sunset)} />
+      </div>
+
+      {f.windows.length > 0 && (
+        <>
+          <h3 style={S.wxH3}>Окна на 3 дня</h3>
+          <div style={S.winTable}>
+            {f.windows.map((w, i) => {
+              const isBest = f.best === w;
+              const col = w.idx >= 65 ? "#52d27a" : w.idx >= 45 ? "#9ed24a" : w.idx >= 30 ? "#f5b942" : "#e0824a";
+              return (
+                <div key={i} style={{ ...S.winRow, ...(isBest ? S.winRowBest : {}) }}>
+                  <span style={S.winDay}>{isBest && "⭐ "}{w.day === 0 ? "Сегодня" : w.day === 1 ? "Завтра" : WD[new Date(w.ts).getDay()]}, {w.label}</span>
+                  <span style={S.winTime}>{w.range} {WCODE(w.code).e}</span>
+                  <span style={{ ...S.winIdx, color: col }}>{w.idx}</span>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      <h3 style={S.wxH3}>Почему так</h3>
+      <div style={S.whyList}>
+        {f.why.map((w, i) => <div key={i} style={S.whyItem}><span style={{ color: w.good ? "#52d27a" : "#e0824a", fontWeight: 900 }}>{w.good ? "+" : "−"}</span><span>{w.t}</span></div>)}
+      </div>
+
+      <h3 style={S.wxH3}>Активность по видам</h3>
+      <div style={S.actList}>
+        {sorted.map((id) => {
+          const f2 = FISH[id], a = f.species[id], r = RARITY[f2.rarity];
+          const col = a >= 65 ? "#52d27a" : a >= 45 ? "#9ed24a" : a >= 30 ? "#f5b942" : "#e0824a";
+          return (
+            <div key={id} style={S.actRow}>
+              <span style={S.actGlyph}><FishGlyph shape={f2.shape} color={f2.color} size={32} /></span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={S.actName}>{f2.name} <span style={{ ...S.actDot, background: r.color }} /></div>
+                <div style={S.actTrack}><div style={{ ...S.actFill, width: `${a}%`, background: col }} /></div>
+              </div>
+              <span style={{ ...S.actPct, color: col }}>{a}</span>
+            </div>
+          );
+        })}
+      </div>
+      <p style={S.disclaimer}>Живая погода Open-Meteo для 58.16, 56.57. Модель эвристическая — ориентир, не гарантия. Рыба прогнозов не читает 😉</p>
+    </div>
+  );
+}
+function Cond({ icon, label, val }) {
+  return <div style={S.condCell}><span style={{ fontSize: 18 }}>{icon}</span><div style={{ minWidth: 0 }}><div style={S.condVal}>{val}</div><div style={S.condLabel}>{label}</div></div></div>;
+}
+
+// ── DEX + ACHIEVEMENTS ────────────────────────────────────────
+function DexView({ dex, ach }) {
+  const got = FISH_IDS.filter((id) => dex[id].count > 0).length;
+  return (
+    <div>
+      <h2 style={S.h2}>Рыбадекс <span style={{ color: "#8aa3ad", fontSize: 14 }}>· {got}/{FISH_IDS.length} — только реальные уловы</span></h2>
+      <div style={{ ...S.dexGrid, marginTop: 12 }}>
+        {FISH_IDS.map((id) => {
+          const f = FISH[id], c = dex[id], g = c.count > 0, r = RARITY[f.rarity];
+          return (
+            <div key={id} style={{ ...S.dexCell, borderColor: g ? r.color + "55" : "#22343c" }}>
+              {c.trophy && <span style={S.trophyStar}>★</span>}
+              <FishGlyph shape={f.shape} color={f.color} size={56} dim={!g} trophy={c.trophy} />
+              <span style={{ ...S.dexName, color: g ? "#eaf3f6" : "#5a6e77" }}>{g ? f.name : "???"}</span>
+              {g ? <span style={S.dexMeta}>×{c.count} · до {fmt(c.best)}</span> : <span style={S.dexMeta}>не пойман</span>}
+            </div>
+          );
+        })}
+      </div>
+
+      <h3 style={S.wxH3}>Ачивки · {Object.keys(ach).length}/{Object.keys(ACH).length}</h3>
+      <div style={S.achList}>
+        {Object.entries(ACH).map(([id, a]) => {
+          const g = !!ach[id];
+          return (
+            <div key={id} style={{ ...S.achRow, opacity: g ? 1 : 0.45 }}>
+              <span style={{ fontSize: 22, filter: g ? "none" : "grayscale(1)" }}>{a.emoji}</span>
+              <div><div style={{ fontWeight: 800, fontSize: 14 }}>{a.name}</div><div style={{ color: "#8aa3ad", fontSize: 12 }}>{a.desc}</div></div>
+              {g && <span style={{ marginLeft: "auto", color: "#52d27a", fontWeight: 900 }}>✓</span>}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── JOURNAL ───────────────────────────────────────────────────
+function CatchRow({ c, compact, onDelete }) {
+  const f = FISH[c.fid];
+  const spot = SPOTS.find((s) => s.id === c.spotId);
+  return (
+    <div style={S.jRow}>
+      <span style={S.actGlyph}><FishGlyph shape={f.shape} color={f.color} size={compact ? 34 : 40} trophy={c.flags?.trophy} /></span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontWeight: 900, fontSize: 14.5 }}>
+          {f.name} · {fmt(c.w)} {c.flags?.trophy && "🏆"}{c.released && " 💚"}
+        </div>
+        <div style={{ color: "#8aa3ad", fontSize: 12, marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {spot?.name} · {fmtDate(c.ts)}, {fmtClock(c.ts)}{c.wx ? ` · ${WCODE(c.wx.code).e} ${Math.round(c.wx.t)}°` : ""}{c.biteIdx != null ? ` · клёв ${c.biteIdx}` : ""}
+        </div>
+      </div>
+      <span style={{ color: "#f5b942", fontWeight: 900, fontSize: 13, whiteSpace: "nowrap" }}>+{c.xp}</span>
+      {!compact && onDelete && <button onClick={() => onDelete(c.id)} style={S.delBtn}>✕</button>}
+    </div>
+  );
+}
+
+function JournalView({ catches, stats, onDelete }) {
+  const byFish = useMemo(() => {
+    const m = {};
+    for (const c of catches) m[c.fid] = (m[c.fid] || 0) + 1;
+    return Object.entries(m).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  }, [catches]);
+  const maxCount = byFish[0]?.[1] || 1;
+
+  return (
+    <div>
+      <div style={S.statStrip}>
+        <Stat label="Выездов" value={stats.trips} />
+        <Stat label="Уловов" value={stats.count} />
+        <Stat label="Общий вес" value={stats.totalW ? fmt(stats.totalW) : "—"} />
+        <Stat label="Рекорд" value={stats.best ? fmt(stats.best.w) : "—"} sub={stats.best ? FISH[stats.best.fid].name : ""} />
+      </div>
+
+      {byFish.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <div style={S.cardKicker}>Кто клюёт чаще</div>
+          {byFish.map(([id, n]) => (
+            <div key={id} style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6 }}>
+              <span style={{ fontSize: 12.5, fontWeight: 800, width: 64 }}>{FISH[id].name}</span>
+              <div style={{ ...S.actTrack, flex: 1, marginTop: 0 }}><div style={{ ...S.actFill, width: `${(n / maxCount) * 100}%`, background: FISH[id].color }} /></div>
+              <span style={{ fontSize: 12.5, fontWeight: 900, color: "#8aa3ad", width: 22, textAlign: "right" }}>{n}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <h2 style={S.h2}>Журнал</h2>
+      {catches.length === 0 ? (
+        <p style={{ ...S.muted, marginTop: 10 }}>Пока пусто. Первый улов — жми «Записать улов» на главной. Даже плотвичка считается 😉</p>
+      ) : (
+        <div style={{ marginTop: 10 }}>
+          {catches.map((c) => <CatchRow key={c.id} c={c} onDelete={onDelete} />)}
+        </div>
+      )}
+    </div>
+  );
+}
+function Stat({ label, value, sub }) {
+  return <div style={S.stat}><span style={S.statValue}>{value}</span><span style={S.statLabel}>{label}</span>{sub && <span style={S.statSub}>{sub}</span>}</div>;
+}
+
+// ── MAP OVERLAY (Leaflet/OSM) ─────────────────────────────────
+function MapOverlay({ spotPos, onMove, onClose }) {
+  const [state, setState] = useState(window.L ? "ready" : "loading");
+  const mapEl = useRef(null);
+  const mapRef = useRef(null);
+  const moveRef = useRef(onMove); moveRef.current = onMove;
+
+  useEffect(() => {
+    if (window.L) { setState("ready"); return; }
+    const css = document.createElement("link");
+    css.rel = "stylesheet"; css.href = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";
+    document.head.appendChild(css);
+    const js = document.createElement("script");
+    js.src = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
+    js.onload = () => setState("ready");
+    js.onerror = () => setState("error");
+    document.body.appendChild(js);
+  }, []);
+
+  useEffect(() => {
+    if (state !== "ready" || !mapEl.current || mapRef.current) return;
+    const L = window.L;
+    const map = L.map(mapEl.current, { attributionControl: false }).setView([DACHA.lat, DACHA.lng], 14);
+    mapRef.current = map;
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
+    SPOTS.forEach((s) => {
+      const ll = spotPos[s.id] || s.ll;
+      const icon = L.divIcon({ className: "", html: `<div class="leaf-pin ${s.base ? "base" : ""}">${s.base ? "🏠" : "🎣"}</div>`, iconSize: [34, 34], iconAnchor: [17, 17] });
+      const m = L.marker(ll, { draggable: true, icon }).addTo(map);
+      m.bindTooltip(s.name, { direction: "top", offset: [0, -14] });
+      m.on("dragend", (e) => { const p = e.target.getLatLng(); moveRef.current(s.id, p.lat, p.lng); });
+    });
+    setTimeout(() => map.invalidateSize(), 250);
+    return () => { map.remove(); mapRef.current = null; };
+    // eslint-disable-next-line
+  }, [state]);
+
+  return (
+    <div style={S.overlay}>
+      <div style={S.wizHead}>
+        <button onClick={onClose} style={S.back}>‹ Готово</button>
+        <span style={S.wizStep}>перетащи метки на свои точки</span>
+      </div>
+      <div style={{ flex: 1, borderRadius: 18, overflow: "hidden", margin: "0 14px 14px", border: "1px solid #1d4250", position: "relative" }}>
+        {state === "error"
+          ? <div style={S.center}>Карта не загрузилась. Споты всё равно доступны при записи улова.</div>
+          : <div ref={mapEl} style={{ width: "100%", height: "100%" }} />}
+        {state === "loading" && <div style={S.mapLoading}>Загружаю карту…</div>}
+      </div>
+    </div>
+  );
+}
+
+// ── styles ────────────────────────────────────────────────────
+const INK = "#eaf3f6", MUT = "#8aa3ad", GOLD = "#f5b942";
+const S = {
+  app: { maxWidth: 440, margin: "0 auto", minHeight: "100vh", display: "flex", flexDirection: "column", background: "radial-gradient(120% 80% at 50% 0%, #16404e 0%, #0c2630 55%, #081a22 100%)", color: INK, fontFamily: "'Nunito', system-ui, sans-serif", position: "relative" },
+  hud: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px 8px" },
+  logo: { fontFamily: "'Russo One', sans-serif", fontSize: 18, display: "flex", alignItems: "center", gap: 8 },
+  logoIcon: { fontSize: 20 },
+  lvlChip: { fontSize: 12, fontWeight: 900, color: GOLD, background: "rgba(245,185,66,0.12)", border: "1px solid rgba(245,185,66,0.3)", padding: "4px 10px", borderRadius: 99 },
+  xpBarWrap: { position: "relative", height: 18, margin: "0 16px 6px", background: "rgba(255,255,255,0.07)", borderRadius: 99, overflow: "hidden" },
+  xpBarFill: { position: "absolute", inset: 0, width: "0%", background: "linear-gradient(90deg,#e58a28,#f5b942)", borderRadius: 99, transition: "width .5s" },
+  xpBarText: { position: "relative", zIndex: 2, display: "block", textAlign: "center", fontSize: 10.5, fontWeight: 900, lineHeight: "18px", color: "#0f2530", mixBlendMode: "screen", letterSpacing: "0.03em" },
+  main: { flex: 1, padding: "8px 14px 14px", overflowY: "auto" },
+  center: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "60px 20px", gap: 10, height: "100%" },
+  h2: { fontFamily: "'Russo One', sans-serif", fontSize: 17, margin: 0, fontWeight: 400 },
+  muted: { color: MUT, fontSize: 13.5, lineHeight: 1.45, margin: 0 },
+  cardKicker: { fontSize: 11.5, color: "#9fb8c0", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em" },
+
+  biteCard: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, background: "rgba(13,42,52,0.7)", border: "1px solid #1d4250", borderRadius: 16, padding: "13px 15px" },
+  biteLeft: { minWidth: 0 },
+  biteVerdict: { fontFamily: "'Russo One',sans-serif", fontSize: 19, marginTop: 3 },
+  biteMeta: { fontSize: 12.5, color: MUT, marginTop: 4 },
+  gaugeSm: { position: "relative", width: 64, height: 64, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  gaugeSmNum: { position: "absolute", fontFamily: "'Russo One',sans-serif", fontSize: 17 },
+  miniBtn: { background: "none", border: "1px solid #2a4d59", color: MUT, borderRadius: 10, padding: "6px 12px", fontSize: 15, cursor: "pointer" },
+
+  questCard: { display: "flex", alignItems: "center", gap: 12, marginTop: 10, background: "rgba(245,185,66,0.09)", border: "1px solid rgba(245,185,66,0.28)", borderRadius: 14, padding: "12px 14px" },
+  questEmoji: { fontSize: 26 },
+  questTitle: { fontWeight: 900, fontSize: 14.5 },
+  questDesc: { fontSize: 12.5, color: "#d8c49a", marginTop: 2 },
+  questXp: { fontFamily: "'Russo One',sans-serif", color: GOLD, fontSize: 17 },
+
+  cta: { display: "block", width: "100%", marginTop: 14, padding: "17px", borderRadius: 16, border: "none", background: "linear-gradient(160deg,#f5b942,#e58a28)", color: "#1a1206", fontSize: 17, fontWeight: 900, fontFamily: "'Nunito',sans-serif", cursor: "pointer", boxShadow: "0 8px 20px -6px rgba(245,185,66,0.5)" },
+  ctaHint: { textAlign: "center", fontSize: 12, color: "#7d949d", marginTop: 8 },
+
+  winCard: { marginTop: 16, background: "rgba(13,42,52,0.55)", border: "1px solid #1d4250", borderRadius: 14, padding: "12px 14px" },
+  winBest: { fontSize: 14.5, fontWeight: 900, marginTop: 6 },
+  winList: { display: "flex", gap: 6, flexWrap: "wrap", marginTop: 9 },
+  winChip: { fontSize: 11.5, fontWeight: 800, color: "#bcd4dc", background: "rgba(255,255,255,0.06)", padding: "4px 9px", borderRadius: 99 },
+  mapLink: { display: "block", margin: "20px auto 6px", background: "none", border: "none", color: MUT, fontSize: 13, fontWeight: 800, textDecoration: "underline", textUnderlineOffset: 3, cursor: "pointer", fontFamily: "'Nunito',sans-serif" },
+
+  overlay: { position: "fixed", inset: 0, zIndex: 1000, paddingTop: "env(safe-area-inset-top)", background: "radial-gradient(120% 80% at 50% 0%, #16404e 0%, #0c2630 55%, #081a22 100%)", display: "flex", flexDirection: "column", maxWidth: 440, margin: "0 auto" },
+  wizHead: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px 6px" },
+  wizStep: { fontSize: 12, color: MUT, fontWeight: 800 },
+  wizBody: { flex: 1, overflowY: "auto", padding: "6px 16px 20px" },
+  wizH: { fontFamily: "'Russo One',sans-serif", fontSize: 21, fontWeight: 400, margin: "6px 0 14px" },
+  back: { background: "none", border: "none", color: GOLD, fontWeight: 800, fontSize: 14.5, cursor: "pointer", padding: 0, fontFamily: "'Nunito',sans-serif" },
+
+  spGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9 },
+  spCell: { background: "rgba(13,42,52,0.6)", border: "1.5px solid #1d4250", borderRadius: 14, padding: "14px 8px 11px", display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer", fontFamily: "'Nunito',sans-serif", color: INK },
+  spName: { fontWeight: 900, fontSize: 14.5 },
+  spDot: { width: 7, height: 7, borderRadius: "50%" },
+
+  wCenter: { display: "flex", flexDirection: "column", alignItems: "center", gap: 8, padding: "8px 0 4px" },
+  wValue: { fontFamily: "'Russo One',sans-serif", fontSize: 38, color: GOLD },
+  wTrophy: { color: GOLD, fontWeight: 900, fontSize: 13 },
+  wBtns: { display: "flex", gap: 14, marginTop: 6 },
+  wBtn: { width: 74, height: 64, borderRadius: 16, border: "none", background: "rgba(255,255,255,0.09)", color: INK, fontSize: 32, fontWeight: 900, cursor: "pointer" },
+  wChips: { display: "flex", gap: 7, flexWrap: "wrap", justifyContent: "center", marginTop: 10 },
+  wChip: { background: "rgba(255,255,255,0.07)", border: "1.5px solid transparent", color: "#bcd4dc", borderRadius: 99, padding: "7px 13px", fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "'Nunito',sans-serif" },
+  wChipOn: { borderColor: GOLD, color: GOLD, background: "rgba(245,185,66,0.1)" },
+
+  spotList: { display: "flex", flexDirection: "column", gap: 9 },
+  spotBtn: { display: "flex", alignItems: "center", gap: 12, textAlign: "left", background: "rgba(13,42,52,0.6)", border: "1.5px solid #1d4250", borderRadius: 14, padding: "14px 15px", color: INK, fontSize: 14, cursor: "pointer", fontFamily: "'Nunito',sans-serif" },
+  spotBtnOn: { borderColor: GOLD },
+
+  confCard: { display: "flex", flexDirection: "column", alignItems: "center", background: "rgba(13,42,52,0.6)", border: "1px solid #1d4250", borderRadius: 16, padding: "16px" },
+  confBlock: { marginTop: 14 },
+  confLabel: { fontSize: 12, color: MUT, fontWeight: 800, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" },
+  relToggle: { display: "block", width: "100%", marginTop: 12, padding: "13px", borderRadius: 14, border: "1.5px solid #2a4d59", background: "rgba(255,255,255,0.04)", color: INK, fontSize: 14.5, fontWeight: 800, cursor: "pointer", fontFamily: "'Nunito',sans-serif" },
+  relOn: { borderColor: "#52d27a", background: "rgba(82,210,122,0.1)" },
+
+  celebWrap: { margin: "auto 16px", position: "relative", background: "rgba(10,32,40,0.96)", border: "1px solid #2a4d59", borderRadius: 22, padding: "26px 20px 20px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", overflow: "hidden" },
+  celebTitle: { fontFamily: "'Russo One',sans-serif", fontSize: 26, margin: "10px 0 2px", fontWeight: 400 },
+  celebXp: { fontFamily: "'Russo One',sans-serif", fontSize: 34, color: GOLD },
+  lvlUp: { marginTop: 8, background: "rgba(82,210,122,0.12)", border: "1px solid rgba(82,210,122,0.4)", color: "#7fe3a1", fontWeight: 900, fontSize: 13.5, padding: "7px 14px", borderRadius: 99 },
+  celebLines: { width: "100%", marginTop: 14, display: "flex", flexDirection: "column", gap: 5 },
+  celebLine: { display: "flex", justifyContent: "space-between", fontSize: 13, color: "#c4d6dc", background: "rgba(255,255,255,0.045)", borderRadius: 9, padding: "7px 12px" },
+  celebAch: { width: "100%", marginTop: 10, display: "flex", flexDirection: "column", gap: 5 },
+  celebAchItem: { fontSize: 13.5, fontWeight: 900, color: GOLD, background: "rgba(245,185,66,0.1)", border: "1px solid rgba(245,185,66,0.3)", borderRadius: 9, padding: "8px 12px" },
+  sparkWrap: { position: "absolute", inset: 0, overflow: "hidden", zIndex: 1, pointerEvents: "none" },
+
+  verdictCard: { background: "rgba(13,42,52,0.7)", border: "1px solid", borderRadius: 18, padding: "16px 18px" },
+  verdictTop: { display: "flex", justifyContent: "space-between", alignItems: "center" },
+  verdictName: { fontFamily: "'Russo One',sans-serif", fontSize: 24, marginTop: 4 },
+  gauge: { position: "relative", width: 84, height: 84, display: "flex", alignItems: "center", justifyContent: "center" },
+  gaugeNum: { position: "absolute", fontFamily: "'Russo One',sans-serif", fontSize: 22 },
+  refresh: { marginTop: 10, background: "none", border: "none", color: MUT, fontSize: 12.5, fontWeight: 700, cursor: "pointer", fontFamily: "'Nunito',sans-serif", padding: 0 },
+  condGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 14 },
+  condCell: { display: "flex", alignItems: "center", gap: 9, background: "rgba(13,42,52,0.5)", border: "1px solid #1a2f37", borderRadius: 12, padding: "10px 12px" },
+  condVal: { fontSize: 15, fontWeight: 900, color: INK },
+  condLabel: { fontSize: 11, color: MUT, fontWeight: 600, marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  wxH3: { fontFamily: "'Russo One',sans-serif", fontSize: 14, margin: "20px 2px 10px", fontWeight: 400, color: "#cfe0e6" },
+  winTable: { display: "flex", flexDirection: "column", gap: 6 },
+  winRow: { display: "flex", alignItems: "center", gap: 10, background: "rgba(13,42,52,0.45)", borderRadius: 11, padding: "10px 13px", border: "1px solid transparent" },
+  winRowBest: { borderColor: "rgba(82,210,122,0.4)", background: "rgba(82,210,122,0.07)" },
+  winDay: { fontSize: 13.5, fontWeight: 900, minWidth: 110 },
+  winTime: { fontSize: 12.5, color: MUT, flex: 1 },
+  winIdx: { fontFamily: "'Russo One',sans-serif", fontSize: 16 },
+  whyList: { display: "flex", flexDirection: "column", gap: 7 },
+  whyItem: { display: "flex", gap: 10, alignItems: "flex-start", fontSize: 13.5, color: "#c4d6dc", lineHeight: 1.4, background: "rgba(13,42,52,0.4)", padding: "9px 12px", borderRadius: 10 },
+  actList: { display: "flex", flexDirection: "column", gap: 8 },
+  actRow: { display: "flex", alignItems: "center", gap: 10 },
+  actGlyph: { background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: "3px 5px", flexShrink: 0 },
+  actName: { fontSize: 13.5, fontWeight: 800, display: "flex", alignItems: "center", gap: 6 },
+  actDot: { width: 7, height: 7, borderRadius: "50%", display: "inline-block" },
+  actTrack: { height: 7, background: "rgba(255,255,255,0.08)", borderRadius: 99, marginTop: 5, overflow: "hidden" },
+  actFill: { height: "100%", borderRadius: 99, transition: "width .4s" },
+  actPct: { fontFamily: "'Russo One',sans-serif", fontSize: 15, minWidth: 26, textAlign: "right" },
+
+  dexGrid: { display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 9 },
+  dexCell: { background: "rgba(13,42,52,0.5)", border: "1px solid #22343c", borderRadius: 14, padding: "12px 6px 10px", display: "flex", flexDirection: "column", alignItems: "center", position: "relative", minHeight: 108, justifyContent: "center" },
+  trophyStar: { position: "absolute", top: 6, right: 8, color: GOLD, fontSize: 14 },
+  dexName: { fontSize: 13, fontWeight: 800, marginTop: 6 },
+  dexMeta: { fontSize: 11, color: MUT, marginTop: 4, fontWeight: 600 },
+  achList: { display: "flex", flexDirection: "column", gap: 7 },
+  achRow: { display: "flex", alignItems: "center", gap: 12, background: "rgba(13,42,52,0.45)", borderRadius: 12, padding: "10px 13px" },
+
+  statStrip: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 7, marginBottom: 16 },
+  stat: { background: "rgba(13,42,52,0.6)", border: "1px solid #1d4250", borderRadius: 13, padding: "10px 4px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" },
+  statValue: { fontFamily: "'Russo One',sans-serif", fontSize: 14.5, color: GOLD },
+  statLabel: { fontSize: 9.5, color: MUT, fontWeight: 700, marginTop: 3, textTransform: "uppercase", letterSpacing: "0.04em" },
+  statSub: { fontSize: 9.5, color: "#6f8790", marginTop: 1 },
+
+  jRow: { display: "flex", alignItems: "center", gap: 10, background: "rgba(13,42,52,0.45)", borderRadius: 12, padding: "9px 12px", marginTop: 7 },
+  delBtn: { background: "none", border: "none", color: "#5f7780", fontSize: 15, cursor: "pointer", padding: "4px 2px" },
+
+  nav: { display: "flex", gap: 6, padding: "8px 12px 16px", borderTop: "1px solid #163741", background: "rgba(8,22,28,0.7)", backdropFilter: "blur(8px)" },
+  navBtn: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, padding: "8px 4px", borderRadius: 12, border: "none", background: "transparent", color: MUT, fontSize: 11, fontWeight: 800, fontFamily: "'Nunito',sans-serif", cursor: "pointer" },
+  navOn: { background: "rgba(245,185,66,0.12)", color: GOLD },
+  navIcon: { fontSize: 19 },
+
+  mapLoading: { position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: MUT, fontWeight: 700, background: "#0f2b34", zIndex: 500 },
+  disclaimer: { textAlign: "center", fontSize: 11.5, color: "#5f7780", marginTop: 16, lineHeight: 1.5, padding: "0 4px" },
+};
+
+const CSS = `
+@import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Nunito:wght@600;700;800;900&display=swap');
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+.cast:active { transform: scale(0.97); }
+.tapcell:active { transform: scale(0.96); border-color: #f5b942 !important; }
+.bob { animation: bob 1s ease-in-out infinite; }
+@keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+.catchPop { animation: catchPop 0.5s cubic-bezier(.18,.9,.3,1.4); }
+@keyframes catchPop { 0% { transform: scale(0.2) rotate(-12deg); opacity: 0; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+.spark { position: absolute; top: 45%; border-radius: 2px; animation: spark 1.2s ease-out forwards; }
+@keyframes spark { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-140px) scale(0); opacity: 0; } }
+.leaf-pin { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(160deg,#f5b942,#e08a2a); display: flex; align-items: center; justify-content: center; font-size: 17px; box-shadow: 0 3px 10px rgba(0,0,0,0.5), 0 0 0 3px rgba(245,185,66,0.25); cursor: grab; }
+.leaf-pin.base { background: linear-gradient(160deg,#4aa3e0,#2b6fae); box-shadow: 0 3px 10px rgba(0,0,0,0.5), 0 0 0 3px rgba(74,163,224,0.3); }
+.leaflet-container { background: #0f2b34 !important; font-family: 'Nunito', sans-serif; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+`;
+
+ReactDOM.createRoot(document.getElementById("root")).render(<ChusovayaGo />);
+</script>
+</body>
+</html>
